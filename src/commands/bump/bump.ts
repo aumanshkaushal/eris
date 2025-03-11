@@ -43,7 +43,7 @@ export default (bot: Eris.Client): Command => ({
 
         setTimeout(() => {
             msg.channel.createMessage({
-                content: '<@&1119667729788567622',
+                content: '<@&1119667729788567622>',
                 embeds: [{
                     color: 0xffffff,
                     description: `<a:stars:1348951777902329866> **It's time to bump!**
