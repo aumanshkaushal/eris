@@ -46,7 +46,7 @@ export class CommandHandler {
                                 type: interaction.type,
                                 data: 'data' in interaction ? interaction.data : null
                             });
-                            
+
                             if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND) {
                                 const commandInteraction = interaction as Eris.CommandInteraction;
                                 console.log('Processing slash command:', commandInteraction.data.name);
@@ -94,7 +94,6 @@ export class CommandHandler {
                     break;
 
                 default:
-                    // Handle generic Eris events (e.g., 'guildJoin')
                     this.bot.on(eventName as any, async (...args: any[]) => {
                         console.log(`Event ${eventName} received:`, args);
                         commandMap.forEach(async (command) => {
