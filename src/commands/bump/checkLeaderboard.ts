@@ -15,7 +15,7 @@ export default (bot: Eris.Client): Command => ({
         if (componentInteraction.data.custom_id !== 'bump_check_leaderboard') return;
 
         try {
-            await componentInteraction.defer();
+            await componentInteraction.defer(Eris.Constants.MessageFlags.EPHEMERAL);
 
             const users = await getTopUsers();
             const leaderboardEntries = await Promise.all(
