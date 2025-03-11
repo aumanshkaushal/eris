@@ -40,32 +40,46 @@ export class CommandHandler {
                     });
                     break;
 
-                case 'interactionCreate':
-                    this.bot.on('interactionCreate', async (interaction: Eris.Interaction) => {
-                        console.log('Interaction event received:', {
-                            type: interaction.type,
-                            data: 'data' in interaction ? interaction.data : null
-                        });
-
-                        if (interaction.type !== Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
-                            console.log('Skipping non-component interaction');
-                            return;
-                        }
-
-                        const componentInteraction = interaction as Eris.ComponentInteraction;
-                        console.log('Processing component interaction:', componentInteraction.data.custom_id);
-
-                        const command = commandMap.get(componentInteraction.data.custom_id);
-                        if (command) {
-                            try {
-                                await command.execute(componentInteraction);
-                                console.log(`Successfully executed command: ${command.name}`);
-                            } catch (error) {
-                                console.error(`Error executing interaction command ${command.name}:`, error);
+                    case 'interactionCreate':
+                        this.bot.on('interactionCreate', async (interaction: Eris.Interaction) => {
+                            console.log('Interaction event received:', {
+                                type: interaction.type,
+                                data: 'data' in interaction ? interaction.data : null
+                            });
+                            
+                            if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND) {
+                                const commandInteraction = interaction as Eris.CommandInteraction;
+                                console.log('Processing slash command:', commandInteraction.data.name);
+                    
+                                const command = commandMap.get(commandInteraction.data.name);
+                                if (command) {
+                                    try {
+                                        await command.execute(commandInteraction);
+                                        console.log(`Successfully executed command: ${command.name}`);
+                                    } catch (error) {
+                                        console.error(`Error executing slash command ${command.name}:`, error);
+                                    }
+                                }
                             }
-                        }
-                    });
-                    break;
+                            else if (interaction.type === Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
+                                const componentInteraction = interaction as Eris.ComponentInteraction;
+                                console.log('Processing component interaction:', componentInteraction.data.custom_id);
+                    
+                                const command = commandMap.get(componentInteraction.data.custom_id);
+                                if (command) {
+                                    try {
+                                        await command.execute(componentInteraction);
+                                        console.log(`Successfully executed component command: ${command.name}`);
+                                    } catch (error) {
+                                        console.error(`Error executing component command ${command.name}:`, error);
+                                    }
+                                }
+                            }
+                            else {
+                                console.log('Skipping unhandled interaction type:', interaction.type);
+                            }
+                        });
+                        break;
 
                 case 'messageCreate':
                     this.bot.on('messageCreate', async (msg: Eris.Message) => {
@@ -102,25 +116,33 @@ export class CommandHandler {
             console.log('No interaction commands to register');
             return;
         }
-
+    
         const commands: Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>[] = 
             Array.from(interactionCommands.values())
                 .filter(cmd => cmd.interactionType !== undefined)
-                .map(cmd => ({
-                    name: cmd.name,
-                    description: cmd.description,
-                    options: cmd.options || [],
-                    type: cmd.interactionType!
-                }));
-
+                .map(cmd => {
+                    console.log(`Preparing to register command: ${cmd.name}`, {
+                        name: cmd.name,
+                        description: cmd.description,
+                        type: cmd.interactionType,
+                        options: cmd.options || []
+                    });
+                    return {
+                        name: cmd.name,
+                        description: cmd.description,
+                        options: cmd.options || [],
+                        type: cmd.interactionType!
+                    } as Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>;
+                });
+    
         if (commands.length === 0) {
             console.log('No slash commands to register');
             return;
         }
-
+    
         try {
             await this.bot.bulkEditCommands(commands);
-            console.log('Successfully registered slash commands:', commands.map(c => c.name));
+            console.log('Successfully registered global slash commands:', commands.map(c => c.name));
         } catch (error) {
             console.error('Error registering slash commands:', error);
         }
