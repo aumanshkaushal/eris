@@ -40,46 +40,61 @@ export class CommandHandler {
                     });
                     break;
 
-                    case 'interactionCreate':
-                        this.bot.on('interactionCreate', async (interaction: Eris.Interaction) => {
-                            console.log('Interaction event received:', {
-                                type: interaction.type,
-                                data: 'data' in interaction ? interaction.data : null
-                            });
-
-                            if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND) {
-                                const commandInteraction = interaction as Eris.CommandInteraction;
-                                console.log('Processing slash command:', commandInteraction.data.name);
-                    
-                                const command = commandMap.get(commandInteraction.data.name);
-                                if (command) {
-                                    try {
-                                        await command.execute(commandInteraction);
-                                        console.log(`Successfully executed command: ${command.name}`);
-                                    } catch (error) {
-                                        console.error(`Error executing slash command ${command.name}:`, error);
-                                    }
-                                }
-                            }
-                            else if (interaction.type === Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
-                                const componentInteraction = interaction as Eris.ComponentInteraction;
-                                console.log('Processing component interaction:', componentInteraction.data.custom_id);
-                    
-                                const command = commandMap.get(componentInteraction.data.custom_id);
-                                if (command) {
-                                    try {
-                                        await command.execute(componentInteraction);
-                                        console.log(`Successfully executed component command: ${command.name}`);
-                                    } catch (error) {
-                                        console.error(`Error executing component command ${command.name}:`, error);
-                                    }
-                                }
-                            }
-                            else {
-                                console.log('Skipping unhandled interaction type:', interaction.type);
-                            }
+                case 'interactionCreate':
+                    this.bot.on('interactionCreate', async (interaction: Eris.Interaction) => {
+                        console.log('Interaction event received:', {
+                            type: interaction.type,
+                            data: 'data' in interaction ? interaction.data : null
                         });
-                        break;
+                
+                        if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND) {
+                            const commandInteraction = interaction as Eris.CommandInteraction;
+                            console.log('Processing slash command:', commandInteraction.data.name);
+                            
+                            const command = commandMap.get(commandInteraction.data.name);
+                            if (command) {
+                                try {
+                                    await command.execute(commandInteraction);
+                                    console.log(`Successfully executed command: ${command.name}`);
+                                } catch (error) {
+                                    console.error(`Error executing slash command ${command.name}:`, error);
+                                }
+                            }
+                        }
+                        else if (interaction.type === Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
+                            const componentInteraction = interaction as Eris.ComponentInteraction;
+                            console.log('Processing component interaction:', componentInteraction.data.custom_id);
+                            
+                            const command = commandMap.get(componentInteraction.data.custom_id);
+                            if (command) {
+                                try {
+                                    await command.execute(componentInteraction);
+                                    console.log(`Successfully executed component command: ${command.name}`);
+                                } catch (error) {
+                                    console.error(`Error executing component command ${command.name}:`, error);
+                                }
+                            }
+                        }
+                        else if (interaction.type === Eris.Constants.InteractionTypes.MODAL_SUBMIT) {
+                            const modalInteraction = interaction as Eris.ModalSubmitInteraction;
+                            console.log('Processing modal submission:', modalInteraction.data.custom_id);
+                
+                            commandMap.forEach(async (command) => {
+                                if (!command.name || command.name === modalInteraction.data.custom_id) {
+                                    try {
+                                        await command.execute(modalInteraction);
+                                        console.log(`Successfully executed modal command: ${command.name || 'unnamed modal handler'}`);
+                                    } catch (error) {
+                                        console.error(`Error executing modal command ${command.name || 'unnamed modal handler'}:`, error);
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            console.log('Skipping unhandled interaction type:', interaction.type);
+                        }
+                    });
+                    break;
 
                 case 'messageCreate':
                     this.bot.on('messageCreate', async (msg: Eris.Message) => {
@@ -126,12 +141,15 @@ export class CommandHandler {
                         type: cmd.interactionType,
                         options: cmd.options || []
                     });
-                    return {
+                    const commandObj: Partial<Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>> = {
                         name: cmd.name,
-                        description: cmd.description,
-                        options: cmd.options || [],
                         type: cmd.interactionType!
-                    } as Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>;
+                    };
+                    if (cmd.interactionType === Eris.Constants.ApplicationCommandTypes.CHAT_INPUT) {
+                        commandObj.description = cmd.description || 'No description';
+                        commandObj.options = cmd.options || [];
+                    }
+                    return commandObj as Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>;
                 });
     
         if (commands.length === 0) {
@@ -155,17 +173,17 @@ export class CommandHandler {
 
     private loadCommandsFromDir(dir: string): void {
         const files = fs.readdirSync(dir, { withFileTypes: true });
-
+    
         for (const file of files) {
             const fullPath = path.join(dir, file.name);
-
+    
             if (file.isDirectory()) {
                 this.loadCommandsFromDir(fullPath);
             } else if (file.name.endsWith('.ts') || file.name.endsWith('.js')) {
                 try {
                     const commandModule = require(fullPath);
                     let command: Command;
-
+    
                     if (typeof commandModule === 'function') {
                         command = commandModule(this.bot);
                     } else if (commandModule.default) {
@@ -177,17 +195,22 @@ export class CommandHandler {
                     } else {
                         command = commandModule;
                     }
-
-                    if (!command.name || !command.type) {
-                        console.warn(`Skipping invalid command in ${fullPath}: Missing name or type`, command);
+    
+                    if (!command.type) {
+                        console.warn(`Skipping invalid command in ${fullPath}: Missing type`, command);
                         continue;
                     }
-
+                    
+                    if (command.type !== 'interactionCreate' && !command.name) {
+                        console.warn(`Skipping invalid command in ${fullPath}: Missing name (required for ${command.type} type)`, command);
+                        continue;
+                    }
+    
                     if (!this.commands.has(command.type)) {
                         this.commands.set(command.type, new Map());
                     }
-                    this.commands.get(command.type)!.set(command.name, command);
-                    console.log(`Loaded command: ${command.name} for type: ${command.type} from ${fullPath}`);
+                    this.commands.get(command.type)!.set(command.name || '', command); 
+                    console.log(`Loaded command: ${command.name || 'unnamed'} for type: ${command.type} from ${fullPath}`);
                 } catch (error) {
                     console.error(`Error loading command from ${fullPath}:`, error);
                 }
