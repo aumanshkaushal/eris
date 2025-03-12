@@ -34,7 +34,7 @@ export default (bot: Eris.Client): Command => ({
             const modification = (commandInteraction.data.options?.find(option => option.name === 'modification') as Eris.InteractionDataOptionsInteger)?.value;
 
             if (!commandInteraction.member?.roles.includes('1143906181182664814') && commandInteraction.member?.user.id !== '428191892950220800') {
-                await interaction.createFollowup({
+                await interaction.createMessage({
                     content: 'You do not have the required role to reward users!',
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
