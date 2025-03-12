@@ -2,6 +2,7 @@ import Eris from 'eris';
 import { Command } from '../../types/command';
 import { getTopUsers } from '../../lib/supportPoints/getTopUsers';
 import { getSupportPoints } from '../../lib/supportPoints/getSupportPoints';
+import { crown, frost } from '../../secret/emoji.json'
 
 export default (bot: Eris.Client): Command => ({
     name: 'bump_check_leaderboard',
@@ -22,8 +23,8 @@ export default (bot: Eris.Client): Command => ({
                 users.map(async (user, index) => {
                     const supportPoints = await getSupportPoints(user);
                     return index === 0
-                        ? `<:crown:1349096568556355615> <@${user}> ↦ \`${supportPoints}\``
-                        : `<:frost:1349096574319333416> <@${user}> ↦ \`${supportPoints}\``;
+                        ? `<:crown:${crown}> <@${user}> ↦ \`${supportPoints}\``
+                        : `<:frost:${frost}> <@${user}> ↦ \`${supportPoints}\``;
                 })
             );
             const leaderboard = leaderboardEntries.join('\n');

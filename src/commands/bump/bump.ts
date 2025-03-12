@@ -1,6 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
 import { addSupportPoints } from '../../lib/supportPoints/addSupportPoints';
+import { stars, glitters } from '../../secret/emoji.json'
 
 export default (bot: Eris.Client): Command => ({
     name: 'bump',
@@ -16,7 +17,7 @@ export default (bot: Eris.Client): Command => ({
         await msg.channel.createMessage({
             embeds: [{
                 color: 0xffffff,
-                description: `<a:stars:1348951777902329866> **Thank you for bumping us, <@${user.id}>!**
+                description: `<a:stars:${stars}> **Thank you for bumping us, <@${user.id}>!**
                 > 1 Support Point has been added to your profile! I will remind you to bump again <t:${Math.round(nextBumpDate/1000)}:R> (<t:${Math.round(nextBumpDate/1000)}:F>).`
             }],
             components: [{
@@ -27,7 +28,7 @@ export default (bot: Eris.Client): Command => ({
                     style: 2,
                     custom_id: 'bump_check_leaderboard',
                     emoji: {
-                        id: '1348951807111598102',
+                        id: glitters,
                         name: 'glitters',
                         animated: true
                     }
