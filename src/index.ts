@@ -21,4 +21,9 @@ bot.on("ready", () => {
     commandHandler.registerSlashCommands();
 });
 
+bot.on("error", (error : any) => {
+    if (error.code === 1006) return;
+    console.error(error);
+})
+
 bot.connect();
