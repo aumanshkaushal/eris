@@ -95,7 +95,7 @@ export class CommandHandler {
 
                 default:
                     this.bot.on(eventName as any, async (...args: any[]) => {
-                        console.log(`Event ${eventName} received:`, args);
+                        // console.log(`Event ${eventName} received:`, args);
                         commandMap.forEach(async (command) => {
                             try {
                                 await command.execute(...args);
