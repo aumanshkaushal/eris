@@ -16,6 +16,15 @@ export default (bot: Eris.Client): Command => ({
                 embeds: [{
                     color: 0xffffff,
                     description: `<@${member.id}> (${member.username}) created their account <t:${Math.round(member.createdAt/1000)}:R> (<t:${Math.round(member.createdAt/1000)}:F>)`
+                }],
+                components: [{
+                    type: Eris.Constants.ComponentTypes.ACTION_ROW,
+                    components: [{
+                        label: 'Visit Profile',
+                        style: Eris.Constants.ButtonStyles.LINK,
+                        type: Eris.Constants.ComponentTypes.BUTTON,
+                        url: `https://discord.com/users/${member.id}`
+                }]
                 }]
             });
         }
