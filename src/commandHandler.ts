@@ -46,11 +46,9 @@ export class CommandHandler {
                             type: interaction.type,
                             data: 'data' in interaction ? interaction.data : null
                         });
-                
+
                         if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND) {
                             const commandInteraction = interaction as Eris.CommandInteraction;
-                            console.log('Processing slash command:', commandInteraction.data.name);
-                            
                             const command = commandMap.get(commandInteraction.data.name);
                             if (command) {
                                 try {
@@ -61,15 +59,25 @@ export class CommandHandler {
                                 }
                             }
                         }
+                        else if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE) {
+                            const autocompleteInteraction = interaction as Eris.AutocompleteInteraction;
+                            const command = commandMap.get(autocompleteInteraction.data.name);
+                            if (command?.autocomplete) {
+                                try {
+                                    await command.autocomplete(autocompleteInteraction);
+                                    console.log(`Successfully handled autocomplete for: ${command.name}`);
+                                } catch (error) {
+                                    console.error(`Error handling autocomplete for ${command.name}:`, error);
+                                }
+                            }
+                        }
+                        // Keep other interaction types as they were
                         else if (interaction.type === Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
                             const componentInteraction = interaction as Eris.ComponentInteraction;
-                            console.log('Processing component interaction:', componentInteraction.data.custom_id);
-                            
                             const command = commandMap.get(componentInteraction.data.custom_id);
                             if (command) {
                                 try {
                                     await command.execute(componentInteraction);
-                                    console.log(`Successfully executed component command: ${command.name}`);
                                 } catch (error) {
                                     console.error(`Error executing component command ${command.name}:`, error);
                                 }
@@ -77,21 +85,15 @@ export class CommandHandler {
                         }
                         else if (interaction.type === Eris.Constants.InteractionTypes.MODAL_SUBMIT) {
                             const modalInteraction = interaction as Eris.ModalSubmitInteraction;
-                            console.log('Processing modal submission:', modalInteraction.data.custom_id);
-                
                             commandMap.forEach(async (command) => {
                                 if (!command.name || command.name === modalInteraction.data.custom_id) {
                                     try {
                                         await command.execute(modalInteraction);
-                                        console.log(`Successfully executed modal command: ${command.name || 'unnamed modal handler'}`);
                                     } catch (error) {
-                                        console.error(`Error executing modal command ${command.name || 'unnamed modal handler'}:`, error);
+                                        console.error(`Error executing modal command ${command.name}:`, error);
                                     }
                                 }
                             });
-                        }
-                        else {
-                            console.log('Skipping unhandled interaction type:', interaction.type);
                         }
                     });
                     break;
@@ -110,7 +112,6 @@ export class CommandHandler {
 
                 default:
                     this.bot.on(eventName as any, async (...args: any[]) => {
-                        // console.log(`Event ${eventName} received:`, args);
                         commandMap.forEach(async (command) => {
                             try {
                                 await command.execute(...args);

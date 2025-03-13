@@ -8,4 +8,5 @@ export interface Command {
     execute: (...args: any[]) => Promise<void>;
     options?: Eris.ApplicationCommandOptions[];
     interactionType?: Eris.ApplicationCommandTypes;
+    autocomplete?: (interaction: Eris.AutocompleteInteraction) => Promise<void>;
 }
