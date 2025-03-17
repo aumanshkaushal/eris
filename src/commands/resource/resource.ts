@@ -3,7 +3,6 @@ import { Command } from '../../types/command';
 import { cache } from '../../lib/cache';
 import { stars, right, wrong, blue, heart } from '../../secret/emoji.json';
 import { addTemporaryResource } from '../../lib/resource/addTemporaryResource';
-import { getAverageRating } from '../../lib/resource/getAverageRating';
 import { resourceLibraryChannelID } from '../../secret/config.json';
 
 export default (bot: Eris.Client): Command => ({
@@ -139,7 +138,7 @@ export default (bot: Eris.Client): Command => ({
                             {
                                 type: Eris.Constants.ComponentTypes.BUTTON,
                                 style: Eris.Constants.ButtonStyles.PRIMARY,
-                                label: 'Rating: ' + Math.round((Number(await getAverageRating(resourceId))) * 10) / 10,
+                                label: 'Rating: ' + Math.round((Number(await cache.getAverageRating(resourceId))) * 10) / 10,
                                 custom_id: 'rate',
                                 disabled: true,
                                 emoji: {
