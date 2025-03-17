@@ -202,6 +202,62 @@ export class ResourceCache {
             return false;
         }
     }
+
+    async getActiveResourceCountByUser(userID: string): Promise<number> {
+        let activeCount = 0;
+        for (const resource of Object.values(this.resources)) {
+            if (resource.author === userID && resource.status === 'active') {
+                activeCount++;
+            }
+        }
+        return activeCount;
+    }
+    
+    async getTotalResourceCountByUser(userID: string): Promise<number> {
+        let totalCount = 0;
+        for (const resource of Object.values(this.resources)) {
+            if (resource.author === userID) {
+                totalCount++;
+            }
+        }
+        return totalCount;
+    }
+    
+    async getAverageRatingByUser(userID: string): Promise<number | null> {
+        const allRatings: number[] = [];
+        
+        for (const resource of Object.values(this.resources)) {
+            if (resource.author === userID && resource.rating && Array.isArray(resource.rating)) {
+                resource.rating.forEach((review: { rating: number }) => {
+                    if (review.rating) {
+                        allRatings.push(review.rating);
+                    }
+                });
+            }
+        }
+    
+        if (allRatings.length === 0) {
+            return null;
+        }
+    
+        const total = allRatings.reduce((acc, curr) => acc + curr, 0);
+        return total / allRatings.length;
+    }
+    
+    async getReviewCountByUser(userID: string): Promise<number> {
+        let reviewCount = 0;
+        
+        for (const resource of Object.values(this.resources)) {
+            if (resource.rating && Array.isArray(resource.rating)) {
+                reviewCount += resource.rating.filter(
+                    (review: { reviewer: string }) => review.reviewer === userID
+                ).length;
+            }
+        }
+        return reviewCount;
+    }
 }
+
+
 
 export const cache = new ResourceCache();
