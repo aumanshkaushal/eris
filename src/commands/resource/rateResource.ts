@@ -25,6 +25,11 @@ export default (bot: Eris.Client): Command => ({
             if (!resourceId) {
                 throw new Error('No resource ID found in message');
             }
+            const resource = await cache.getResource(resourceId);
+            
+            if (!resource.status || resource.status !== 'active') {
+                throw new Error('Resource not found');
+            }
 
             await interaction.createModal({
                 title: 'Rate Resource',
