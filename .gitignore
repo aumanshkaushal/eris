@@ -5,3 +5,4 @@ src/secret/config.json
 src/secret/serviceAccountKey.json
 src/secret/emoji.json
 src/secret/firebase.json
+src/secret/roles.json

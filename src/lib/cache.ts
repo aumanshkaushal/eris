@@ -1,9 +1,9 @@
-import { apiKey, authDomain, projectId, messagingSenderId, appId } from '../secret/firebase.json'
 import { db } from './firebase';
 import * as admin from 'firebase-admin';
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getFirestore, onSnapshot, collection } from 'firebase/firestore';
 import { filter } from 'fuzzaldrin';
+import { apiKey, authDomain, projectId, messagingSenderId, appId } from '../secret/firebase.json';
 
 const firebaseConfig = {
     apiKey,
@@ -84,6 +84,41 @@ export class ResourceCache {
 
         console.log(`serveResources: tag=${tag}, search=${search}, results=${resources.length}`);
         return resources.slice(0, 25);
+    }
+
+    async getAverageRating(resourceID: string): Promise<number | string> {
+        const resource = this.resources[resourceID];
+        if (!resource || !resource.rating || resource.rating.length === 0) return "Unrated";
+
+        const totalRatings = resource.rating.reduce((acc: number, curr: { rating: number }) => acc + curr.rating, 0);
+        const averageRating = totalRatings / resource.rating.length;
+        return averageRating;
+    }
+
+    async hasRated(resourceID: string, userID: string): Promise<boolean> {
+        const resource = this.resources[resourceID];
+        if (!resource || !resource.rating) return false;
+
+        return resource.rating.some((review: { reviewer: string }) => review.reviewer === userID);
+    }
+
+    async rateResource(resourceID: string, reviewer: string, rating: number, comment: string): Promise<boolean> {
+        const resource = this.resources[resourceID];
+        if (!resource) return false;
+
+        if (rating < 1) rating = 1;
+        if (rating > 5) rating = 5;
+
+        if (!resource.rating) resource.rating = [];
+
+        resource.rating.push({
+            reviewer,
+            rating,
+            comment
+        });
+
+        await db.collection('resource').doc(resourceID).set(resource);
+        return true;
     }
 }
 
