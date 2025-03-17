@@ -1,7 +1,7 @@
 import { db } from '../firebase';
 import { initializeUser } from './initializeUser';
 
-async function addSupportPoints(userId: string, supportPoints: number): Promise<void> {
+async function addSupportPoints(userId: string, supportPoints: number): Promise<Boolean> {
     try {
         const userRef = db.collection('user').doc(userId);
         const userDoc = await userRef.get();
@@ -11,16 +11,18 @@ async function addSupportPoints(userId: string, supportPoints: number): Promise<
         } else {
             const currentPoints = userDoc.data()?.supportpoints ?? 0;
             if (typeof currentPoints !== 'number') {
-                return;
+                return false;
             }
             await userRef.update({
                 supportpoints: currentPoints + supportPoints
             });
+            return true
         }
     } catch (error) {
         console.error('Error adding support point:', error);
-        throw error;
+        return false;
     }
+    return false;
 }
 
 export { addSupportPoints };

@@ -11,7 +11,7 @@ async function addTemporaryResource(
     const resourceID = await generateResourceID();
 
     const createdAt = Date.now();
-    const resource = db.collection('resources').doc(resourceID);
+    const resource = db.collection('resource').doc(resourceID);
     const desc = description === "" ? null : description;
     await resource.set({
         title,
