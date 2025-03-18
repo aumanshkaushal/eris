@@ -84,22 +84,22 @@ export default (bot: Eris.Client): Command => ({
                         }
                     },{
                         type: Eris.Constants.ComponentTypes.BUTTON,
-                        style: Eris.Constants.ButtonStyles.DANGER,
-                        label: 'Delete Resource',
-                        custom_id: 'report_resource_delete',
-                        emoji: {
-                            id: wrong,
-                            name: 'wrong',
-                            animated: true
-                        }
-                    },{
-                        type: Eris.Constants.ComponentTypes.BUTTON,
                         style: Eris.Constants.ButtonStyles.SUCCESS,
                         label: 'Save Resource',
                         custom_id: 'report_resource_save',
                         emoji: {
                             id: right,
                             name: 'right',
+                            animated: true
+                        }
+                    },{
+                        type: Eris.Constants.ComponentTypes.BUTTON,
+                        style: Eris.Constants.ButtonStyles.DANGER,
+                        label: 'Delete Resource',
+                        custom_id: 'report_resource_delete',
+                        emoji: {
+                            id: wrong,
+                            name: 'wrong',
                             animated: true
                         }
                     },{

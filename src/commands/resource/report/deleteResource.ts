@@ -26,11 +26,11 @@ export default (bot: Eris.Client): Command => ({
             if (updatedComponents[0]?.components[1]?.custom_id === 'report_notify_author') {
                 updatedComponents[0].components[1].disabled = true;
             }
-            if (updatedComponents[0]?.components[2]?.custom_id === 'report_resource_delete') {
-                updatedComponents[0].components[2].disabled = true;
-            }
-            if (updatedComponents[0]?.components[3]?.custom_id === 'report_resource_save') {
+            if (updatedComponents[0]?.components[3]?.custom_id === 'report_resource_delete') {
                 updatedComponents[0].components[3].disabled = true;
+            }
+            if (updatedComponents[0]?.components[2]?.custom_id === 'report_resource_save') {
+                updatedComponents[0].components[2].disabled = true;
             }
             if (updatedComponents[1]?.components[0]?.custom_id === 'report_resource_edit') {
                 updatedComponents[1].components[0].disabled = true;
