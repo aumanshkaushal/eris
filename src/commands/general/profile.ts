@@ -53,8 +53,8 @@ export default (bot: Eris.Client): Command => ({
                         `<:reply:${reply}> **Reviews Contributed:** \`${await databaseManager.getReviewCountByUser(target)}\``,
                         ``,
                         `<a:heart:${heart}> **Support Statistics:**`,
-                        `<:reply:${reply}> **Total Support Points:** \`${await databaseManager.getSupportPoints(target)}\``,
-
+                        `<:replycontinued:${replycontinued}> **Total Support Points:** \`${await databaseManager.getSupportPoints(target)}\``,
+                        `<:reply:${reply}> **Leaderboard Position:** \`#${await databaseManager.getLeaderboardPosition(target)}/${await databaseManager.getTotalUsers()}\``,
                     ].join('\n'),
                 }]
             })

@@ -27,6 +27,10 @@ export default (bot: Eris.Client): Command => ({
                 })
             );
             const leaderboard = leaderboardEntries.join('\n');
+            let userID = componentInteraction.user?.id;
+            if (!userID) {
+                userID = componentInteraction.member?.id || '';
+            }
 
             await componentInteraction.createFollowup({
                 embeds: [{
@@ -38,6 +42,9 @@ export default (bot: Eris.Client): Command => ({
                     description: leaderboard || 'No users in the leaderboard yet!',
                     image: {
                         url: 'https://cdn.discordapp.com/attachments/948989141562040370/1117037169840750682/1686392804883.jpg'
+                    },
+                    footer: {
+                        text: `You are currently at #${await databaseManager.getLeaderboardPosition(userID)}/${await databaseManager.getTotalUsers()}`
                     }
                 }]
             });
