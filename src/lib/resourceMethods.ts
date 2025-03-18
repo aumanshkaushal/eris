@@ -6,7 +6,6 @@ export async function getResource(db: Database, id: string): Promise<any> {
         db.get("SELECT * FROM resources WHERE id = ?", [id], (err, row: any) => {
             if (err) reject(err);
             else if (row) {
-                row.rating = row.rating ? JSON.parse(row.rating) : [];
                 row.usage = row.usage ? JSON.parse(row.usage) : [];
                 resolve(row);
             } else resolve(null);
@@ -32,16 +31,31 @@ export async function serveResources(db: Database, tag: string = 'ALL', search: 
 }
 
 export async function getAverageRating(db: Database, resourceID: string): Promise<number | string> {
-    const resource = await getResource(db, resourceID);
-    if (!resource || !resource.rating || resource.rating.length === 0) return "Unrated";
-    const totalRatings = resource.rating.reduce((acc: number, curr: { rating: number }) => acc + curr.rating, 0);
-    return totalRatings / resource.rating.length;
+    return new Promise((resolve, reject) => {
+        db.all(
+            "SELECT rating FROM reviews WHERE resource_id = ?",
+            [resourceID],
+            (err, rows: any[]) => {
+                if (err) reject(err);
+                if (!rows || rows.length === 0) resolve("Unrated");
+                const totalRatings = rows.reduce((acc, row) => acc + (row.rating || 0), 0);
+                resolve(totalRatings / rows.length);
+            }
+        );
+    });
 }
 
 export async function hasRated(db: Database, resourceID: string, userID: string): Promise<boolean> {
-    const resource = await getResource(db, resourceID);
-    if (!resource || !resource.rating) return false;
-    return resource.rating.some((review: { reviewer: string }) => review.reviewer === userID);
+    return new Promise((resolve, reject) => {
+        db.get(
+            "SELECT 1 FROM reviews WHERE resource_id = ? AND reviewer = ?",
+            [resourceID, userID],
+            (err, row) => {
+                if (err) reject(err);
+                resolve(!!row);
+            }
+        );
+    });
 }
 
 export async function rateResource(
@@ -51,16 +65,14 @@ export async function rateResource(
     if (!resource) return false;
     if (rating < 1) rating = 1;
     if (rating > 5) rating = 5;
-    resource.rating = resource.rating || [];
-    resource.rating.push({ reviewer, rating, comment });
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         db.run(
-            "UPDATE resources SET rating = ? WHERE id = ?",
-            [JSON.stringify(resource.rating), resourceID],
+            "INSERT INTO reviews (resource_id, reviewer, rating, comment) VALUES (?, ?, ?, ?)",
+            [resourceID, reviewer, rating, comment],
             (err) => {
                 if (err) {
-                    console.error(`Error rating resource ${resourceID}:`, err);
+                    console.error(`Error adding review for resource ${resourceID}:`, err);
                     resolve(false);
                 } else {
                     resolve(true);
@@ -73,14 +85,11 @@ export async function rateResource(
 export async function deleteResource(db: Database, resourceID: string, staffActionBy: string): Promise<boolean> {
     const resource = await getResource(db, resourceID);
     if (!resource) return false;
-    resource.status = 'deleted';
-    resource.staffActionBy = staffActionBy;
-    resource.staffActionAt = Math.floor(Date.now() / 1000);
 
     return new Promise((resolve) => {
         db.run(
             "UPDATE resources SET status = ?, staff_action_by = ?, staff_action_at = ? WHERE id = ?",
-            [resource.status, resource.staffActionBy, resource.staffActionAt, resourceID],
+            ['deleted', staffActionBy, Math.floor(Date.now() / 1000), resourceID],
             (err) => {
                 if (err) {
                     console.error(`Error deleting resource ${resourceID}:`, err);
@@ -93,7 +102,6 @@ export async function deleteResource(db: Database, resourceID: string, staffActi
         );
     });
 }
-
 export async function editTitle(db: Database, resourceID: string, newTitle: string, staffActionBy: string): Promise<boolean> {
     const resource = await getResource(db, resourceID);
     if (!resource) return false;
@@ -237,16 +245,16 @@ export async function getTotalResourceCountByUser(db: Database, userID: string):
 export async function getAverageRatingByUser(db: Database, userID: string): Promise<number | null> {
     return new Promise((resolve, reject) => {
         db.all(
-            "SELECT rating FROM resources WHERE author = ? AND rating IS NOT NULL",
+            `SELECT r.rating 
+             FROM reviews r 
+             JOIN resources res ON r.resource_id = res.id 
+             WHERE res.author = ?`,
             [userID],
             (err, rows: any[]) => {
                 if (err) reject(err);
-                const allRatings: number[] = [];
-                rows.forEach(row => {
-                    const ratings = JSON.parse(row.rating || '[]');
-                    ratings.forEach((r: { rating: number }) => allRatings.push(r.rating));
-                });
-                resolve(allRatings.length ? allRatings.reduce((a, b) => a + b, 0) / allRatings.length : null);
+                if (!rows.length) resolve(null);
+                const total = rows.reduce((acc, row) => acc + (row.rating || 0), 0);
+                resolve(total / rows.length);
             }
         );
     });
@@ -254,18 +262,10 @@ export async function getAverageRatingByUser(db: Database, userID: string): Prom
 
 export async function getReviewCountByUser(db: Database, userID: string): Promise<number> {
     return new Promise((resolve, reject) => {
-        db.all(
-            "SELECT rating FROM resources WHERE rating IS NOT NULL",
-            [],
-            (err, rows: any[]) => {
-                if (err) reject(err);
-                let count = 0;
-                rows.forEach(row => {
-                    const ratings = JSON.parse(row.rating || '[]');
-                    count += ratings.filter((r: { reviewer: string }) => r.reviewer === userID).length;
-                });
-                resolve(count);
-            }
+        db.get(
+            "SELECT COUNT(*) as count FROM reviews WHERE reviewer = ?",
+            [userID],
+            (err, row: any) => err ? reject(err) : resolve(row.count)
         );
     });
 }
@@ -281,11 +281,11 @@ export async function addTemporaryResource(
         db.run(
             `INSERT INTO resources (
                 id, title, tag, url, description, author, created_at, staff_action_at, 
-                staff_action_by, usage, rating, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                staff_action_by, usage, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 resourceID, title, tag, url, desc, author, createdAt, null,
-                null, JSON.stringify([]), JSON.stringify([]), 'pending'
+                null, JSON.stringify([]), 'pending'
             ],
             (err) => {
                 if (err) {

@@ -22,7 +22,6 @@ export class DatabaseManager {
                     title TEXT,
                     author TEXT,
                     status TEXT,
-                    rating TEXT,
                     tag TEXT,
                     description TEXT,
                     url TEXT,
@@ -47,6 +46,22 @@ export class DatabaseManager {
                 )
             `, (err) => {
                 if (err) console.error('Error initializing users table:', err);
+                resolve();
+            });
+        });
+
+        await new Promise<void>((resolve) => {
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS reviews (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    resource_id TEXT,
+                    reviewer TEXT,
+                    rating INTEGER,
+                    comment TEXT,
+                    FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
+                )
+            `, (err) => {
+                if (err) console.error('Error initializing reviews table:', err);
                 resolve();
             });
         });

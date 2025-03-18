@@ -8,3 +8,5 @@ src/secret/firebase.json
 src/secret/roles.json
 dev.db
 prod.db
+prod.db.backup
+dev.db.backup
