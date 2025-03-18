@@ -85,6 +85,8 @@ export class DatabaseManager {
     getTopUsers = () => userMethods.getTopUsers(this.db);
     getSupportPoints = (userId: string) => userMethods.getSupportPoints(this.db, userId);
     addSupportPoints = (userId: string, supportPoints: number) => userMethods.addSupportPoints(this.db, userId, supportPoints);
+    getLeaderboardPosition = (userId: string) => userMethods.getLeaderboardPosition(this.db, userId);
+    getTotalUsers = () => userMethods.getTotalUsers(this.db);
 }
 
 export const databaseManager = new DatabaseManager(process.env.NODE_ENV === 'production' ? 'prod' : 'dev');

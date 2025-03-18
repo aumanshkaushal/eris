@@ -95,3 +95,60 @@ export async function addSupportPoints(db: Database, userId: string, supportPoin
         );
     });
 }
+
+export async function getTotalUsers(db: Database): Promise<number> {
+    return new Promise((resolve, reject) => {
+        db.get(
+            "SELECT COUNT(*) as total FROM users",
+            [],
+            (err, row: any) => {
+                if (err) {
+                    console.error('Error fetching total users:', err);
+                    reject(err);
+                } else {
+                    resolve(row.total || 0);
+                }
+            }
+        );
+    });
+}
+
+export async function getLeaderboardPosition(db: Database, userId: string): Promise<number> {
+    return new Promise((resolve, reject) => {
+        db.get(
+            "SELECT supportpoints FROM users WHERE id = ?",
+            [userId],
+            async (err, row: any) => {
+                if (err) {
+                    console.error('Error fetching user for leaderboard position:', err);
+                    return reject(err);
+                }
+
+                let userPoints = 0;
+                if (!row) {
+                    try {
+                        await initializeUser(db, userId);
+                    } catch (error) {
+                        return reject(error);
+                    }
+                } else {
+                    userPoints = row.supportpoints || 0;
+                }
+
+                db.get(
+                    "SELECT COUNT(*) as higher FROM users WHERE supportpoints > ?",
+                    [userPoints],
+                    (err, countRow: any) => {
+                        if (err) {
+                            console.error('Error counting higher support points:', err);
+                            return reject(err);
+                        }
+
+                        const rank = (countRow.higher || 0) + 1;
+                        resolve(rank);
+                    }
+                );
+            }
+        );
+    });
+}
