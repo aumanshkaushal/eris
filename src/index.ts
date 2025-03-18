@@ -1,6 +1,6 @@
-// index.ts
 import Eris from 'eris';
 import { CommandHandler } from './commandHandler';
+import { databaseManager } from './lib/database';
 require('dotenv').config();
 
 const bot = new Eris.Client(`Bot ${process.env.TOKEN}`, {
@@ -12,12 +12,12 @@ const commandHandler = new CommandHandler(bot);
 commandHandler.registerEvents();
 
 bot.on("ready", async () => {
-    console.log(`Ready on ${bot.user.username}`);
+    console.log(`Ready on ${bot.user.username}, DB: ${databaseManager ? 'ready' : 'not ready'}`);
     bot.editStatus("idle", {
         name: "over the server",
         type: 3
     });
-    await commandHandler.registerSlashCommands(); // No need to wait for cache; listener handles it
+    await commandHandler.registerSlashCommands();
 });
 
 bot.on("error", (error: any) => {

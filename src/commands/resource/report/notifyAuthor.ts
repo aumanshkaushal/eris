@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
-import { cache } from '../../../lib/cache';
+import { databaseManager } from '../../../lib/database';
 import { blue } from '../../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({
@@ -26,7 +26,7 @@ export default (bot: Eris.Client): Command => ({
             if (updatedComponents[0]?.components[1]?.custom_id === 'report_notify_author') {
                 updatedComponents[0].components[1].disabled = true;
             }
-            const resource = await cache.getResource(resourceId);
+            const resource = await databaseManager.getResource(resourceId);
             if (!resource) {
                 throw new Error('Resource not found');
             }

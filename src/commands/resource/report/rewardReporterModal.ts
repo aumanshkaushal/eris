@@ -1,7 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
 import { blue, green, red } from '../../../secret/emoji.json';
-import { addSupportPoints } from '../../../lib/supportPoints/addSupportPoints';
+import { databaseManager } from '../../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
     name: 'report_reward_reporter_modal',
@@ -36,7 +36,7 @@ export default (bot: Eris.Client): Command => ({
                 throw new Error('Invalid points value');
             }
 
-            const success = await addSupportPoints(reporter, pointNum);
+            const success = await databaseManager.addSupportPoints(reporter, pointNum);
             if (!success) {
                 throw new Error('Failed to reward reporter');
             }

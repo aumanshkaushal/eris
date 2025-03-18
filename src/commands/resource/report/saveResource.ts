@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
-import { cache } from '../../../lib/cache';
+import { databaseManager } from '../../../lib/database';
 import { blue, red, green } from '../../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({
@@ -35,13 +35,13 @@ export default (bot: Eris.Client): Command => ({
             if (updatedComponents[1]?.components[0]?.custom_id === 'report_resource_edit') {
                 updatedComponents[1].components[0].disabled = true;
             }
-            const resource = await cache.getResource(resourceId);
+            const resource = await databaseManager.getResource(resourceId);
             if (!resource) {
                 throw new Error('Resource not found');
             }
 
             const staffActionBy = interaction.user?.id || interaction.member?.id || '';
-            await cache.deleteResource(resourceId, staffActionBy);
+            await databaseManager.deleteResource(resourceId, staffActionBy);
 
             await interaction.editOriginalMessage({
                 embeds: [{

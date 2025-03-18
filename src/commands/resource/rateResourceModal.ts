@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { cache } from '../../lib/cache';
+import { databaseManager } from '../../lib/database';
 import { blue } from '../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({
@@ -38,7 +38,7 @@ export default (bot: Eris.Client): Command => ({
                 throw new Error('Invalid rating value');
             }
 
-            const success = await cache.rateResource(resourceId, reviewerId, ratingNum, comment);
+            const success = await databaseManager.rateResource(resourceId, reviewerId, ratingNum, comment);
             if (!success) {
                 throw new Error('Failed to save rating');
             }

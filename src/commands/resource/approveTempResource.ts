@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { approveTemporaryResource } from '../../lib/resource/approveTemporaryResource';
+import { databaseManager } from '../../lib/database';
 import { green, blue } from '../../secret/emoji.json'
 
 export default (bot: Eris.Client): Command => ({
@@ -20,7 +20,7 @@ export default (bot: Eris.Client): Command => ({
             }
 
             const staffActionBy = interaction.member?.id || interaction.user!.id;
-            const success = await approveTemporaryResource(resourceId, staffActionBy);
+            const success = await databaseManager.approveTemporaryResource(resourceId, staffActionBy);
 
             if (!success) {
                 await interaction.editOriginalMessage({

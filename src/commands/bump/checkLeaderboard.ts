@@ -1,7 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { getTopUsers } from '../../lib/supportPoints/getTopUsers';
-import { getSupportPoints } from '../../lib/supportPoints/getSupportPoints';
+import { databaseManager } from '../../lib/database';
 import { crown, frost } from '../../secret/emoji.json'
 
 export default (bot: Eris.Client): Command => ({
@@ -18,10 +17,10 @@ export default (bot: Eris.Client): Command => ({
         try {
             await componentInteraction.defer(Eris.Constants.MessageFlags.EPHEMERAL);
 
-            const users = await getTopUsers();
+            const users = await databaseManager.getTopUsers();
             const leaderboardEntries = await Promise.all(
                 users.map(async (user, index) => {
-                    const supportPoints = await getSupportPoints(user);
+                    const supportPoints = await databaseManager.getSupportPoints(user);
                     return index === 0
                         ? `<:crown:${crown}> <@${user}> ↦ \`${supportPoints}\``
                         : `<:frost:${frost}> <@${user}> ↦ \`${supportPoints}\``;

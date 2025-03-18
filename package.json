@@ -11,8 +11,7 @@
   "dependencies": {
     "dotenv": "^16.4.7",
     "eris": "^0.18.0",
-    "firebase": "^11.4.0",
-    "firebase-admin": "^13.2.0",
-    "fuzzaldrin": "^2.1.0"
+    "fuzzaldrin": "^2.1.0",
+    "sqlite3": "^5.1.7"
   }
 }

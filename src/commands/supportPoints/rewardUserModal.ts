@@ -1,7 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { getSupportPoints } from '../../lib/supportPoints/getSupportPoints';
-import { addSupportPoints } from '../../lib/supportPoints/addSupportPoints';
+import { databaseManager } from '../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
     type: 'interactionCreate',
@@ -39,8 +38,8 @@ export default (bot: Eris.Client): Command => ({
                 });
                 return;
             }
-            await addSupportPoints(targetUserId, points);
-            let userPoints = await getSupportPoints(targetUserId);
+            await databaseManager.addSupportPoints(targetUserId, points);
+            let userPoints = await databaseManager.getSupportPoints(targetUserId);
             await modalInteraction.createMessage({
                 content: `Successfully rewarded <@${targetUserId}> with ${points} support point(s)! They now have ${userPoints} points.`,
                 flags: Eris.Constants.MessageFlags.EPHEMERAL

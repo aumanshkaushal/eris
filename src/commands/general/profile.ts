@@ -1,8 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { cache } from '../../lib/cache';
+import { databaseManager } from '../../lib/database';
 import { stars, heart, reply, replycontinued } from '../../secret/emoji.json';
-import { getSupportPoints } from '../../lib/supportPoints/getSupportPoints';
 
 export default (bot: Eris.Client): Command => ({
     name: 'profile',
@@ -48,13 +47,13 @@ export default (bot: Eris.Client): Command => ({
                         `<:reply:${reply}> ${commandInteraction.member?.joinedAt ? `<t:${Math.round(new Date(commandInteraction.member.joinedAt).valueOf()/1000)}:F> (<t:${Math.round(new Date(commandInteraction.member.joinedAt).valueOf()/1000)}:R>)` : 'Not in server'}`,
                         ``,
                         `<a:heart:${heart}> **Resource Statistics:**`,                        
-                        `<:replycontinued:${replycontinued}> **Resources Submitted:** \`${await cache.getTotalResourceCountByUser(target)}\``,
-                        `<:replycontinued:${replycontinued}> **Resources Maintained:** \`${await cache.getActiveResourceCountByUser(target)}\``,
-                        `<:replycontinued:${replycontinued}> **Average Resource Rating:** \`${await cache.getAverageRatingByUser(target) === null? "NULL" : await cache.getAverageRatingByUser(target)}/5\``,
-                        `<:reply:${reply}> **Reviews Contributed:** \`${await cache.getReviewCountByUser(target)}\``,
+                        `<:replycontinued:${replycontinued}> **Resources Submitted:** \`${await databaseManager.getTotalResourceCountByUser(target)}\``,
+                        `<:replycontinued:${replycontinued}> **Resources Maintained:** \`${await databaseManager.getActiveResourceCountByUser(target)}\``,
+                        `<:replycontinued:${replycontinued}> **Average Resource Rating:** \`${await databaseManager.getAverageRatingByUser(target) === null? "NULL" : Math.round((Number(await databaseManager.getAverageRatingByUser(target))) * 10) / 10}/5\``,
+                        `<:reply:${reply}> **Reviews Contributed:** \`${await databaseManager.getReviewCountByUser(target)}\``,
                         ``,
                         `<a:heart:${heart}> **Support Statistics:**`,
-                        `<:reply:${reply}> **Total Support Points:** \`${await getSupportPoints(target)}\``,
+                        `<:reply:${reply}> **Total Support Points:** \`${await databaseManager.getSupportPoints(target)}\``,
 
                     ].join('\n'),
                 }]

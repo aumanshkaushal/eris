@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
-import { cache } from '../../../lib/cache';
+import { databaseManager } from '../../../lib/database';
 import { resourceReportChannelID } from '../../../secret/config.json'
 import { blue, stars, heart, wrong, right, red } from '../../../secret/emoji.json';
 
@@ -21,7 +21,7 @@ export default (bot: Eris.Client): Command => ({
                 throw new Error('No resource ID found in message');
             }
 
-            let resource = await cache.getResource(resourceId);
+            let resource = await databaseManager.getResource(resourceId);
             if (!resource) {
                 throw new Error('Resource not found');
             }

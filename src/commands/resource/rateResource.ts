@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { cache } from '../../lib/cache';
+import { databaseManager } from '../../lib/database';
 export default (bot: Eris.Client): Command => ({
     name: 'resource_rate',
     description: 'Rate a resource',
@@ -14,7 +14,7 @@ export default (bot: Eris.Client): Command => ({
         const reviewer = interaction.user?.id || interaction.member?.id || '';
 
         try {
-            if (await cache.hasRated(resourceId, reviewer)) {
+            if (await databaseManager.hasRated(resourceId, reviewer)) {
                 await interaction.createMessage({
                     content: '❌ You have already rated this resource.',
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
@@ -25,7 +25,7 @@ export default (bot: Eris.Client): Command => ({
             if (!resourceId) {
                 throw new Error('No resource ID found in message');
             }
-            const resource = await cache.getResource(resourceId);
+            const resource = await databaseManager.getResource(resourceId);
             
             if (!resource.status || resource.status !== 'active') {
                 throw new Error('Resource not found');

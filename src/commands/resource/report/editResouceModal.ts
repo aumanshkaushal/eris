@@ -1,7 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
 import { blue, green, red } from '../../../secret/emoji.json';
-import { cache } from '../../../lib/cache';
+import { databaseManager } from '../../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
     name: 'report_resource_edit_modal',
@@ -24,7 +24,7 @@ export default (bot: Eris.Client): Command => ({
             }
 
 
-            const resource = await cache.getResource(resourceId);
+            const resource = await databaseManager.getResource(resourceId);
             if (!resource) {
                 throw new Error('Resource not found');
             }
@@ -36,19 +36,19 @@ export default (bot: Eris.Client): Command => ({
             let success: boolean;
             switch (editType) {
                 case 'edit_title':
-                    success = await cache.editTitle(resourceId, newValue, staffActionBy);
+                    success = await databaseManager.editTitle(resourceId, newValue, staffActionBy);
                     break;
                 case 'edit_tag':
-                    success = await cache.editTag(resourceId, newValue, staffActionBy);
+                    success = await databaseManager.editTag(resourceId, newValue, staffActionBy);
                     break;
                 case 'edit_description':
-                    success = await cache.editDescription(resourceId, newValue, staffActionBy);
+                    success = await databaseManager.editDescription(resourceId, newValue, staffActionBy);
                     if (newValue == 'none') {
                         newValue = '';
                     }
                     break;
                 case 'edit_url':
-                    success = await cache.editUrl(resourceId, newValue, staffActionBy);
+                    success = await databaseManager.editUrl(resourceId, newValue, staffActionBy);
                     break;
                 case 'edit_author':
                     let authorID = bot.users.get(newValue)?.id
@@ -56,7 +56,7 @@ export default (bot: Eris.Client): Command => ({
                         throw new Error('Invalid author ID');
                     }
                     newValue = authorID;
-                    success = await cache.editAuthor(resourceId, newValue, staffActionBy);
+                    success = await databaseManager.editAuthor(resourceId, newValue, staffActionBy);
                     break;
                 default:
                     throw new Error('Invalid edit type');

@@ -1,7 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { addSupportPoints } from '../../lib/supportPoints/addSupportPoints';
 import { stars, glitters } from '../../secret/emoji.json'
+import { databaseManager } from '../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
     name: 'bump',
@@ -40,7 +40,7 @@ export default (bot: Eris.Client): Command => ({
                 }]
             }]
         });
-        await addSupportPoints(user.id, 1);
+        await databaseManager.addSupportPoints(user.id, 1);
 
         setTimeout(() => {
             msg.channel.createMessage({

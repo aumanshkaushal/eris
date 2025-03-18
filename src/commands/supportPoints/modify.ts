@@ -1,7 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { addSupportPoints } from '../../lib/supportPoints/addSupportPoints';
-import { getSupportPoints } from '../../lib/supportPoints/getSupportPoints';
+import { databaseManager } from '../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
     name: 'modify',
@@ -41,9 +40,9 @@ export default (bot: Eris.Client): Command => ({
                 return;
             }
 
-            await addSupportPoints(targetUser, modification);
+            await databaseManager.addSupportPoints(targetUser, modification);
 
-            const userPoints = await getSupportPoints(targetUser);
+            const userPoints = await databaseManager.getSupportPoints(targetUser);
             
             await interaction.createMessage({
                 content: `Successfully rewarded <@${targetUser}> with ${modification} support point(s)! They now have ${userPoints} points.`,

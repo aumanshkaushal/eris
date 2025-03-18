@@ -1,6 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
-import { cache } from '../../../lib/cache';
+import { databaseManager } from '../../../lib/database';
 import { blue } from '../../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({

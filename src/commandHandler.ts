@@ -71,7 +71,7 @@ export class CommandHandler {
                                 }
                             }
                         }
-                        // Keep other interaction types as they were
+                        
                         else if (interaction.type === Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
                             const componentInteraction = interaction as Eris.ComponentInteraction;
                             const command = commandMap.get(componentInteraction.data.custom_id);

@@ -1,8 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { cache } from '../../lib/cache';
+import { databaseManager } from '../../lib/database';
 import { stars, right, wrong, blue, heart } from '../../secret/emoji.json';
-import { addTemporaryResource } from '../../lib/resource/addTemporaryResource';
 import { resourceLibraryChannelID } from '../../secret/config.json';
 
 export default (bot: Eris.Client): Command => ({
@@ -96,7 +95,7 @@ export default (bot: Eris.Client): Command => ({
 
             if (subCommand.name === 'search') {
                 const resourceId = (subCommand.options.find(opt => opt.name === 'name') as Eris.InteractionDataOptionsString).value;
-                const resource = await cache.getResource(resourceId);
+                const resource = await databaseManager.getResource(resourceId);
 
                 if (!resource) {
                     await interaction.createFollowup({
@@ -138,7 +137,7 @@ export default (bot: Eris.Client): Command => ({
                             {
                                 type: Eris.Constants.ComponentTypes.BUTTON,
                                 style: Eris.Constants.ButtonStyles.PRIMARY,
-                                label: 'Rating: ' + Math.round((Number(await cache.getAverageRating(resourceId))) * 10) / 10,
+                                label: 'Rating: ' + Math.round((Number(await databaseManager.getAverageRating(resourceId))) * 10) / 10,
                                 custom_id: 'rate',
                                 disabled: true,
                                 emoji: {
@@ -180,7 +179,7 @@ export default (bot: Eris.Client): Command => ({
                 const description = (subCommand.options.find(opt => opt.name === 'description') as Eris.InteractionDataOptionsString | undefined)?.value || '';
                 const tag = (subCommand.options.find(opt => opt.name === 'tag') as Eris.InteractionDataOptionsString).value;
                 const url = (subCommand.options.find(opt => opt.name === 'url') as Eris.InteractionDataOptionsString).value;
-                const resourceId = await addTemporaryResource(name, tag, url, description, interaction.member?.id || interaction.user!.id);
+                const resourceId = await databaseManager.addTemporaryResource(name, tag, url, description, interaction.member?.id || interaction.user!.id);
             
                 await interaction.createFollowup({
                     embeds: [{
@@ -285,7 +284,7 @@ export default (bot: Eris.Client): Command => ({
         const tag = tagOption?.value || 'ALL';
         const search = focusedOption.value || '';
 
-        const resources = await cache.serveResources(tag, search);
+        const resources = await databaseManager.serveResources(tag, search);
         await interaction.acknowledge(
             resources.map(resource => ({
                 name: resource.name,
