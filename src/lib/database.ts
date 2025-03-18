@@ -27,8 +27,7 @@ export class DatabaseManager {
                     url TEXT,
                     staff_action_by TEXT,
                     staff_action_at INTEGER,
-                    created_at INTEGER,
-                    usage TEXT
+                    created_at INTEGER
                 )
             `, (err) => {
                 if (err) console.error('Error initializing resources table:', err);
@@ -62,6 +61,21 @@ export class DatabaseManager {
                 )
             `, (err) => {
                 if (err) console.error('Error initializing reviews table:', err);
+                resolve();
+            });
+        });
+
+        await new Promise<void>((resolve) => {
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS usages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    resource_id TEXT,
+                    ip TEXT,
+                    date INTEGER,
+                    FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE
+                )
+            `, (err) => {
+                if (err) console.error('Error initializing usages table:', err);
                 resolve();
             });
         });

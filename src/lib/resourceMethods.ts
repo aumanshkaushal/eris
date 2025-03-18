@@ -5,13 +5,11 @@ export async function getResource(db: Database, id: string): Promise<any> {
     return new Promise((resolve, reject) => {
         db.get("SELECT * FROM resources WHERE id = ?", [id], (err, row: any) => {
             if (err) reject(err);
-            else if (row) {
-                row.usage = row.usage ? JSON.parse(row.usage) : [];
-                resolve(row);
-            } else resolve(null);
+            else resolve(row || null);
         });
     });
 }
+
 
 export async function serveResources(db: Database, tag: string = 'ALL', search: string = ''): Promise<{ name: string, value: string }[]> {
     return new Promise((resolve, reject) => {
@@ -280,13 +278,10 @@ export async function addTemporaryResource(
     return new Promise((resolve, reject) => {
         db.run(
             `INSERT INTO resources (
-                id, title, tag, url, description, author, created_at, staff_action_at, 
-                staff_action_by, usage, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                resourceID, title, tag, url, desc, author, createdAt, null,
-                null, JSON.stringify([]), 'pending'
-            ],
+                id, title, tag, url, description, author, created_at, 
+                staff_action_at, staff_action_by, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [resourceID, title, tag, url, desc, author, createdAt, null, null, 'pending'],
             (err) => {
                 if (err) {
                     console.error('Error adding temporary resource:', err);
