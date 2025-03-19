@@ -1,7 +1,4 @@
-
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 require('dotenv').config({ path: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev' });
-console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 import Eris from 'eris';
 import { CommandHandler } from './commandHandler';
 import { databaseManager } from './lib/database';
