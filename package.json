@@ -1,11 +1,12 @@
 {
   "scripts": {
-    "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "tsc && node dist/index.js"
+    "dev": "tsc && cross-env NODE_ENV=development node dist/index.js",
+    "prod": "tsc && cross-env NODE_ENV=production node dist/index.js"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
+    "cross-env": "^7.0.3",
     "typescript": "^5.8.2"
   },
   "dependencies": {
