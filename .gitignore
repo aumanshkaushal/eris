@@ -10,3 +10,7 @@ dev.db
 prod.db
 prod.db.backup
 dev.db.backup
+dev.db-*
+prod.db-*
+.env.dev
+.env.prod

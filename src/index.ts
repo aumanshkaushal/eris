@@ -1,7 +1,10 @@
+
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
+require('dotenv').config({ path: process.env.NODE_ENV === 'production' ? '.env.prod' : '.env.dev' });
+console.log(`NODE_ENV: ${process.env.NODE_ENV}`);
 import Eris from 'eris';
 import { CommandHandler } from './commandHandler';
 import { databaseManager } from './lib/database';
-require('dotenv').config();
 
 const bot = new Eris.Client(`Bot ${process.env.TOKEN}`, {
     intents: ["guilds", "guildMembers", "guildPresences", "guildMessages", "messageContent"]
@@ -12,11 +15,10 @@ const commandHandler = new CommandHandler(bot);
 commandHandler.registerEvents();
 
 bot.on("ready", async () => {
+    console.log(`TURSO_URL: ${process.env.TURSO_DATABASE_URL}, TOKEN: ${process.env.TURSO_AUTH_TOKEN ? 'set' : 'unset'}`);
+    await databaseManager.sync();
     console.log(`Ready on ${bot.user.username}, DB: ${databaseManager ? 'ready' : 'not ready'}`);
-    bot.editStatus("idle", {
-        name: "over the server",
-        type: 3
-    });
+    bot.editStatus("idle", { name: "over the server", type: 3 });
     await commandHandler.registerSlashCommands();
 });
 
