@@ -45,22 +45,22 @@ export default (bot: Eris.Client): Command => ({
             const userPoints = await databaseManager.getSupportPoints(targetUser);
             
             await interaction.createMessage({
-                content: `Successfully rewarded <@${targetUser}> with ${modification} support point(s)! They now have ${userPoints} points.`,
+                content: `Successfully ${(modification>0) ? 'rewarded' : 'deducted'} ${Math.abs(modification)} support point(s) to <@${targetUser}>! They now have ${userPoints} points.`
             });
             
 
             bot.users.get(targetUser)?.getDMChannel().then((dmChannel) => {
                 dmChannel.createMessage({
-                    content: `Your points have been modified by \`\`${modification}\`\`. You now have \`\`${userPoints}\`\` points.`
+                    content: `You now have \`\`${userPoints}\`\` points. ${(modification > 0) ? `You've been rewarded with ${modification} point(s)!` : `You've had ${Math.abs(modification)} point(s) deducted.`}`
                 })
             });
 
 
         } catch (error) {
-            console.error('Error processing /reward command:', error);
+            console.error('Error processing /modify command:', error);
             try {
                 await interaction.createMessage({
-                    content: 'Failed to process the reward. Try again later!',
+                    content: 'Failed to process the modification. Try again later!',
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
             } catch (followupError) {
