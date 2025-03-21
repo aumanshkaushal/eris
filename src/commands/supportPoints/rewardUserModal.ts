@@ -41,8 +41,13 @@ export default (bot: Eris.Client): Command => ({
             await databaseManager.addSupportPoints(targetUserId, points);
             let userPoints = await databaseManager.getSupportPoints(targetUserId);
             await modalInteraction.createMessage({
-                content: `Successfully rewarded <@${targetUserId}> with ${points} support point(s)! They now have ${userPoints} points.`,
-                flags: Eris.Constants.MessageFlags.EPHEMERAL
+                content: `Successfully rewarded <@${targetUserId}> with ${points} support point(s)! They now have ${userPoints} points.`
+            });
+
+            bot.users.get(targetUserId)?.getDMChannel().then((dmChannel) => {
+                dmChannel.createMessage({
+                    content: `Your points have been modified by \`\`${points}\`\`. You now have \`\`${userPoints}\`\` points.`
+                })
             });
 
         } catch (error) {

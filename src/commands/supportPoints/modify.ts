@@ -46,7 +46,13 @@ export default (bot: Eris.Client): Command => ({
             
             await interaction.createMessage({
                 content: `Successfully rewarded <@${targetUser}> with ${modification} support point(s)! They now have ${userPoints} points.`,
-                flags: Eris.Constants.MessageFlags.EPHEMERAL
+            });
+            
+
+            bot.users.get(targetUser)?.getDMChannel().then((dmChannel) => {
+                dmChannel.createMessage({
+                    content: `Your points have been modified by \`\`${modification}\`\`. You now have \`\`${userPoints}\`\` points.`
+                })
             });
 
 
