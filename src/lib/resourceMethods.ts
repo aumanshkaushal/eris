@@ -44,9 +44,10 @@ export async function rateResource(
         const resource = await getResource(db, resourceID);
         if (!resource) return false;
         const cappedRating = Math.max(1, Math.min(5, rating));
+        const createdAt = Math.floor(Date.now() / 1000);
         await db.execute({
-            sql: "INSERT INTO reviews (resource_id, reviewer, rating, comment) VALUES (?, ?, ?, ?)",
-            args: [resourceID, reviewer, cappedRating, comment]
+            sql: "INSERT INTO reviews (resource_id, reviewer, rating, comment, created_at) VALUES (?, ?, ?, ?, ?)",
+            args: [resourceID, reviewer, cappedRating, comment, createdAt]
         });
         return true;
     } catch (err) {

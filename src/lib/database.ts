@@ -19,6 +19,7 @@ export class DatabaseManager {
                 syncInterval: 3 * 1000
             } : {})
         });
+        this.initializeSchema();
     }
 
     async sync() {
@@ -26,6 +27,44 @@ export class DatabaseManager {
             await this.db.sync();
         } else {
             console.error("Sync not supported: missing syncUrl or authToken");
+        }
+    }
+    async initializeSchema() {
+        try {
+            await this.db.execute(`
+                CREATE TABLE IF NOT EXISTS resources (
+                    id TEXT PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    tag TEXT NOT NULL,
+                    url TEXT NOT NULL,
+                    description TEXT,
+                    author TEXT NOT NULL,
+                    created_at INTEGER NOT NULL,
+                    staff_action_at INTEGER,
+                    staff_action_by TEXT,
+                    status TEXT NOT NULL
+                )
+            `);
+            await this.db.execute(`
+                CREATE TABLE IF NOT EXISTS reviews (
+                    resource_id TEXT NOT NULL,
+                    reviewer TEXT NOT NULL,
+                    rating INTEGER NOT NULL,
+                    comment TEXT,
+                    created_at INTEGER,  -- New column
+                    FOREIGN KEY (resource_id) REFERENCES resources(id)
+                )
+            `);
+            await this.db.execute(`
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    supportpoints INTEGER NOT NULL,
+                    last_active INTEGER,
+                    bookmark TEXT NOT NULL
+                )
+            `);
+        } catch (err) {
+            console.error("Failed to initialize schema:", err);
         }
     }
 
