@@ -176,18 +176,22 @@ export async function getReviewCountByUser(db: Client, userID: string): Promise<
 export async function addTemporaryResource(
     db: Client, title: string, tag: string, url: string, description: string, author: string
 ): Promise<string> {
-    const resourceID = await generateResourceID(db);
-    const createdAt = Math.floor(Date.now() / 1000);
-    const desc = description === "" ? null : description;
-    const { rowsAffected } = await db.execute({
-        sql: `INSERT INTO resources (
-            id, title, tag, url, description, author, created_at, 
-            staff_action_at, staff_action_by, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        args: [resourceID, title, tag, url, desc, author, createdAt, null, null, 'pending']
-    });
-    if (rowsAffected > 0) return resourceID;
-    throw new Error('Failed to add temporary resource');
+    try {        
+        const resourceID = await generateResourceID(db);
+        const createdAt = Math.floor(Date.now() / 1000);
+        const desc = description === "" ? null : description;
+        await db.execute({
+            sql: `INSERT INTO resources (
+                id, title, tag, url, description, author, created_at, 
+                staff_action_at, staff_action_by, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+
+            args: [resourceID, title, tag, url, desc, author, createdAt, null, null, 'pending']
+        });
+        return resourceID
+    } catch (err) {
+        throw new Error('No rows were affected while adding the resource');
+    }
 }
 
 export async function approveTemporaryResource(db: Client, resourceID: string, staffActionBy: string): Promise<boolean> {
