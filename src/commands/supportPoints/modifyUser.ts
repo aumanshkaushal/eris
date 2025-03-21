@@ -2,7 +2,7 @@ import Eris from 'eris';
 import { Command } from '../../types/command';
 
 export default (bot: Eris.Client): Command => ({
-    name: 'Reward User',
+    name: 'Modify Support Points',
     type: 'interactionCreate',
     interactionType: Eris.Constants.ApplicationCommandTypes.USER,
     bot,
@@ -21,16 +21,17 @@ export default (bot: Eris.Client): Command => ({
             }
 
             const targetId = interaction.data.target_id;
-            const custom_id = `rewardusermodal_${targetId}`;
+            const custom_id = `modifysupportpointsmodal_${targetId}`;
 
             await interaction.createModal({
-                title: 'Reward User',
+                title: 'Modify Support Points',
                 custom_id,
                 components: [{
                     type: Eris.Constants.ComponentTypes.ACTION_ROW,
                     components: [{
                         custom_id: 'points',
-                        label: 'How many support points do you want to award?',
+                        label: 'Number of points to add (+) or deduct (-)',
+                        placeholder: '(e.g., +1 or -1)',
                         style: Eris.Constants.TextInputStyles.SHORT,
                         type: Eris.Constants.ComponentTypes.TEXT_INPUT
                     }]
@@ -38,14 +39,14 @@ export default (bot: Eris.Client): Command => ({
             });
 
         } catch (error) {
-            console.error('Error rewarding user:', error);
+            console.error('Error modifying support points of the user:', error);
             try {
                 await interaction.createMessage({
-                    content: 'Failed to reward user. Try again later!',
+                    content: 'Failed to modify support points of the user. Try again later!',
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
             } catch (followupError) {
-                console.error('Error rewarding user error message:', followupError);
+                console.error('Error modifying support points of the user error message:', followupError);
             }
         }
     }
