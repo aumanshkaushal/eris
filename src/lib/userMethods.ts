@@ -31,17 +31,22 @@ export async function getSupportPoints(db: Client, userId: string): Promise<numb
 }
 
 export async function addSupportPoints(db: Client, userId: string, supportPoints: number): Promise<boolean> {
-    const { rows } = await db.execute({
-        sql: "SELECT supportpoints FROM users WHERE id = ?",
-        args: [userId]
-    });
-    if (!rows.length) await initializeUser(db, userId);
-    const currentPoints = rows.length ? (rows[0].supportpoints as number || 0) : 0;
-    const { rowsAffected } = await db.execute({
-        sql: "UPDATE users SET supportpoints = ? WHERE id = ?",
-        args: [currentPoints + supportPoints, userId]
-    });
-    return rowsAffected > 0;
+    try {
+        const { rows } = await db.execute({
+            sql: "SELECT supportpoints FROM users WHERE id = ?",
+            args: [userId]
+        });
+        if (!rows.length) await initializeUser(db, userId);
+        const currentPoints = rows.length ? (rows[0].supportpoints as number || 0) : 0;
+        await db.execute({
+            sql: "UPDATE users SET supportpoints = ? WHERE id = ?",
+            args: [currentPoints + supportPoints, userId]
+        });
+        return true;
+    } catch (err) {
+        console.error(err);
+        return false;
+    }
 }
 
 export async function getTotalUsers(db: Client): Promise<number> {
