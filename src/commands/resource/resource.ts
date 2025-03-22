@@ -196,9 +196,9 @@ export default (bot: Eris.Client): Command => ({
                             icon_url: bot.guilds.get(interaction.guildID!)?.iconURL || undefined
                         },
                         description: [
-                            `<:blue:${blue}> **Resource Name:** \`${name}\``,
+                            `<:blue:${blue}> **Resource Title:** \`${name}\``,
                             `<:blue:${blue}> **Resource Tag:** \`${tag}\``,
-                            `<:blue:${blue}> **Submitted By:** <@${interaction.member?.id || interaction.user!.id}> | \`${bot.users.get(interaction.member?.id || interaction.user!.id)?.username}\``,
+                            `<:blue:${blue}> **Submitted By:** <@${interaction.member?.id || interaction.user!.id}> | \`${(await bot.users.get(interaction.member?.id || interaction.user!.id))?.username}\``,
                             `<:blue:${blue}> **Resource Link:** \`${url}\``,
                             description ? `<:blue:${blue}> **Description:** \`${description}\`` : ''
                         ].join('\n'),
@@ -234,6 +234,16 @@ export default (bot: Eris.Client): Command => ({
                                 name: 'wrong',
                                 animated: true
                             }
+                        }, {
+                            type: Eris.Constants.ComponentTypes.BUTTON,
+                            style: Eris.Constants.ButtonStyles.PRIMARY,
+                            label: 'Reward Author',
+                            custom_id: 'resource_rewardauthor',
+                            emoji: {
+                                id: stars,
+                                name: 'stars',
+                                animated: true
+                            }
                         }]
                     }, {
                         type: Eris.Constants.ComponentTypes.ACTION_ROW,
@@ -242,20 +252,20 @@ export default (bot: Eris.Client): Command => ({
                             custom_id: 'resource_edit',
                             placeholder: 'Edit Resource',
                             options: [{
-                                label: 'Edit Name',
-                                value: 'name'
+                                label: 'Edit Title',
+                                value: 'edit_title'
                             }, {
                                 label: 'Edit Tag',
-                                value: 'tag'
+                                value: 'edit_tag'
                             }, {
                                 label: 'Edit URL',
-                                value: 'url'
+                                value: 'edit_url'
                             }, {
                                 label: 'Edit Description',
-                                value: 'description'
+                                value: 'edit_description'
                             }, {
                                 label: 'Edit Author',
-                                value: 'author'
+                                value: 'edit_author'
                             }],
                             min_values: 1,
                             max_values: 1
