@@ -1,11 +1,9 @@
 import Eris from 'eris';
 import { Command } from '../../../types/command';
-import { databaseManager } from '../../../lib/database';
-import { blue } from '../../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({
     name: 'report_reward_reporter',
-    description: 'Rate a resource',
+    description: 'Reward a reporter for reporting a resource',
     type: 'interactionCreate',
     bot,
     async execute(interaction: Eris.Interaction): Promise<void> {
