@@ -111,9 +111,10 @@ export async function editDescription(db: Client, resourceID: string, newDescrip
         const resource = await getResource(db, resourceID);
         if (!resource) return false;
         const staffActionAt = Math.floor(Date.now() / 1000);
+        const description = newDescription.toLowerCase() === 'none' ? null : newDescription;
         await db.execute({
             sql: "UPDATE resources SET description = ?, staff_action_by = ?, staff_action_at = ? WHERE id = ?",
-            args: [newDescription, staffActionBy, staffActionAt, resourceID]
+            args: [description, staffActionBy, staffActionAt, resourceID]
         });
         console.log(`Resource ${resourceID} description updated by ${staffActionBy}`);
         return true;
