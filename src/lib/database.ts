@@ -144,6 +144,10 @@ export class DatabaseManager {
         return resourceMethods.generateResourceID(this.db);
     }
 
+    checkDuplicate(field: string, value: string) {
+        return resourceMethods.checkDuplicate(this.db, field, value);
+    }
+
     initializeUser(userId: string) {
         return userMethods.initializeUser(this.db, userId);
     }

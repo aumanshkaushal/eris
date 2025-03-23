@@ -188,6 +188,8 @@ export default (bot: Eris.Client): Command => ({
                     }]
                 });
 
+                let duplicate = await databaseManager.checkDuplicate('url', url);
+
                 await bot.createMessage(resourceLibraryChannelID, {
                     embeds: [{
                         color: 0xADD8E6,
@@ -200,8 +202,9 @@ export default (bot: Eris.Client): Command => ({
                             `<:blue:${blue}> **Resource Tag:** \`${tag}\``,
                             `<:blue:${blue}> **Submitted By:** <@${interaction.member?.id || interaction.user!.id}> | \`${(await bot.users.get(interaction.member?.id || interaction.user!.id))?.username}\``,
                             `<:blue:${blue}> **Resource Link:** \`${url}\``,
-                            description ? `<:blue:${blue}> **Description:** \`${description}\`` : ''
-                        ].join('\n'),
+                            description ? `<:blue:${blue}> **Description:** \`${description}\`` : '',
+                            duplicate == false ? '' : `**⚠️ Duplicate URL Found | Resource ID: ${duplicate}**`
+                        ].filter(line => line !== '').join('\n'),
                         footer: {
                             text: resourceId
                         },

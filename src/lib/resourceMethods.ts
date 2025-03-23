@@ -259,3 +259,29 @@ export async function generateResourceID(db: Client): Promise<string> {
     }
     return resourceId;
 }
+
+export async function checkDuplicate(
+    db: Client, 
+    field: string, 
+    value: string
+): Promise<string | false> {
+    try {
+        const allowedFields = ['url', 'title', 'tag', 'author'];
+        if (!allowedFields.includes(field)) {
+            throw new Error('Invalid field specified for duplicate check');
+        }
+
+        const { rows } = await db.execute({
+            sql: `SELECT id FROM resources WHERE ${field} = ? AND status = 'active'`,
+            args: [value]
+        });
+
+        if (rows.length > 0) {
+            return rows[0].id as string;
+        }
+        return false;
+    } catch (err) {
+        console.error(`Error checking duplicate ${field}:`, err);
+        return false;
+    }
+}
