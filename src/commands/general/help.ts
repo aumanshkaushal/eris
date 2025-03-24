@@ -3,7 +3,7 @@ import { Command } from '../../types/command';
 import { databaseManager } from '../../lib/database';
 import { stars, heart, reply, replycontinued } from '../../secret/emoji.json';
 import { prefix } from '../../secret/config.json';
-
+import { version } from '../../../package.json';
 export default (bot: Eris.Client): Command => ({
     name: 'help',
     description: 'Shows the help menu',
@@ -31,6 +31,7 @@ export default (bot: Eris.Client): Command => ({
                         `<:replycontinued:${replycontinued}> Uptime: \`${bot.uptime ? Math.floor(bot.uptime / 1000 / 60) : 0} minutes\``,
                         `<:replycontinued:${replycontinued}> Environment: \`${process.env.NODE_ENV || 'development'}\``,
                         `<:replycontinued:${replycontinued}> Eris Version: \`${Eris.VERSION}\``,
+                        `<:replycontinued:${replycontinued}> Source Version: \`${version}\``,
                         `<:replycontinued:${replycontinued}> Node.js Version: \`${process.version}\``,
                         `<:reply:${reply}> Developer: \`${bot.users.get('428191892950220800')?.username}\` | <@428191892950220800>`,
                         ``,
