@@ -4,10 +4,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import config from './secret/config.json';
 
+interface Subcommand {
+    parent?: string;
+    subcommand: string;
+    options: Eris.ApplicationCommandOptions[];
+    execute: (interaction: Eris.CommandInteraction, bot: Eris.Client) => Promise<void>;
+    autocomplete?: (interaction: Eris.AutocompleteInteraction, bot: Eris.Client) => Promise<void>;
+}
+
 export class CommandHandler {
     private bot: Eris.Client;
     private prefix: string = config.prefix;
     private commands: Map<string, Map<string, Command>> = new Map();
+    private subcommands: Map<string, Subcommand[]> = new Map();
 
     constructor(bot: Eris.Client) {
         this.bot = bot;
@@ -51,17 +60,61 @@ export class CommandHandler {
                             const commandInteraction = interaction as Eris.CommandInteraction;
                             const command = commandMap.get(commandInteraction.data.name);
                             if (command) {
+                                const subcommandName = commandInteraction.data.options?.[0]?.name;
+                                const subcommands = this.subcommands.get(commandInteraction.data.name) || [];
+
+                                if (subcommandName) {
+                                    const subcommand = subcommands.find(sc => sc.subcommand === subcommandName);
+                                    if (subcommand) {
+                                        try {
+                                            await subcommand.execute(commandInteraction, this.bot);
+                                            console.log(`Successfully executed subcommand: ${command.name}/${subcommandName}`);
+                                        } catch (error) {
+                                            console.error(`Error executing subcommand ${command.name}/${subcommandName}:`, error);
+                                            await commandInteraction.createFollowup({
+                                                embeds: [{
+                                                    color: 0xFF0000,
+                                                    description: '❌ An error occurred while processing the command.'
+                                                }]
+                                            });
+                                        }
+                                        return;
+                                    }
+                                }
+
                                 try {
                                     await command.execute(commandInteraction);
                                     console.log(`Successfully executed command: ${command.name}`);
                                 } catch (error) {
                                     console.error(`Error executing slash command ${command.name}:`, error);
+                                    await commandInteraction.createFollowup({
+                                        embeds: [{
+                                            color: 0xFF0000,
+                                            description: '❌ An error occurred while processing the command.'
+                                        }]
+                                    });
                                 }
                             }
                         }
                         else if (interaction.type === Eris.Constants.InteractionTypes.APPLICATION_COMMAND_AUTOCOMPLETE) {
                             const autocompleteInteraction = interaction as Eris.AutocompleteInteraction;
                             const command = commandMap.get(autocompleteInteraction.data.name);
+                            const subcommands = this.subcommands.get(autocompleteInteraction.data.name) || [];
+
+                            const subcommandName = autocompleteInteraction.data.options?.[0]?.name;
+                            if (subcommandName) {
+                                const subcommand = subcommands.find(sc => sc.subcommand === subcommandName);
+                                if (subcommand?.autocomplete) {
+                                    try {
+                                        await subcommand.autocomplete(autocompleteInteraction, this.bot);
+                                        console.log(`Successfully handled autocomplete for: ${command?.name}/${subcommandName}`);
+                                    } catch (error) {
+                                        console.error(`Error handling autocomplete for ${command?.name}/${subcommandName}:`, error);
+                                    }
+                                    return;
+                                }
+                            }
+
                             if (command?.autocomplete) {
                                 try {
                                     await command.autocomplete(autocompleteInteraction);
@@ -71,13 +124,13 @@ export class CommandHandler {
                                 }
                             }
                         }
-                        
                         else if (interaction.type === Eris.Constants.InteractionTypes.MESSAGE_COMPONENT) {
                             const componentInteraction = interaction as Eris.ComponentInteraction;
                             const command = commandMap.get(componentInteraction.data.custom_id);
                             if (command) {
                                 try {
                                     await command.execute(componentInteraction);
+                                    console.log(`Successfully executed component command: ${command.name}`);
                                 } catch (error) {
                                     console.error(`Error executing component command ${command.name}:`, error);
                                 }
@@ -89,6 +142,7 @@ export class CommandHandler {
                                 if (!command.name || command.name === modalInteraction.data.custom_id) {
                                     try {
                                         await command.execute(modalInteraction);
+                                        console.log(`Successfully executed modal command: ${command.name}`);
                                     } catch (error) {
                                         console.error(`Error executing modal command ${command.name}:`, error);
                                     }
@@ -131,33 +185,46 @@ export class CommandHandler {
             console.log('No interaction commands to register');
             return;
         }
-    
+
         const commands: Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>[] = 
             Array.from(interactionCommands.values())
-                .filter(cmd => cmd.interactionType !== undefined)
+                .filter(cmd => cmd.interactionType !== undefined && cmd.name !== undefined)
                 .map(cmd => {
+                    const subcommands = this.subcommands.get(cmd.name!) || [];
                     console.log(`Preparing to register command: ${cmd.name}`, {
                         name: cmd.name,
                         description: cmd.description,
                         type: cmd.interactionType,
-                        options: cmd.options || []
+                        options: [...(cmd.options || []), ...subcommands.map(sc => ({
+                            name: sc.subcommand,
+                            description: sc.subcommand.charAt(0).toUpperCase() + sc.subcommand.slice(1),
+                            type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+                            options: sc.options as Eris.ApplicationCommandOptionsWithValue[]
+                        }))]
                     });
-                    const commandObj: Partial<Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>> = {
-                        name: cmd.name,
-                        type: cmd.interactionType!
+                    return {
+                        name: cmd.name!,
+                        type: cmd.interactionType!,
+                        description: cmd.interactionType === Eris.Constants.ApplicationCommandTypes.CHAT_INPUT 
+                            ? (cmd.description || 'No description') 
+                            : undefined,
+                        options: [
+                            ...(cmd.options || []),
+                            ...subcommands.map(sc => ({
+                                name: sc.subcommand,
+                                description: sc.subcommand.charAt(0).toUpperCase() + sc.subcommand.slice(1),
+                                type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+                                options: sc.options as Eris.ApplicationCommandOptionsWithValue[]
+                            }))
+                        ]
                     };
-                    if (cmd.interactionType === Eris.Constants.ApplicationCommandTypes.CHAT_INPUT) {
-                        commandObj.description = cmd.description || 'No description';
-                        commandObj.options = cmd.options || [];
-                    }
-                    return commandObj as Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>;
                 });
-    
+
         if (commands.length === 0) {
             console.log('No slash commands to register');
             return;
         }
-    
+
         try {
             await this.bot.bulkEditCommands(commands);
             console.log('Successfully registered global slash commands:', commands.map(c => c.name));
@@ -169,49 +236,58 @@ export class CommandHandler {
     private loadCommands(): void {
         const commandsPath = path.join(__dirname, 'commands');
         console.log(`Loading commands from: ${commandsPath}`);
-        this.loadCommandsFromDir(commandsPath);
+        this.loadCommandsRecursive(commandsPath);
     }
 
-    private loadCommandsFromDir(dir: string): void {
+    private loadCommandsRecursive(dir: string): void {
         const files = fs.readdirSync(dir, { withFileTypes: true });
-    
+
         for (const file of files) {
             const fullPath = path.join(dir, file.name);
-    
             if (file.isDirectory()) {
-                this.loadCommandsFromDir(fullPath);
-            } else if (file.name.endsWith('.ts') || file.name.endsWith('.js')) {
+                this.loadCommandsRecursive(fullPath);
+            } else if (file.isFile() && file.name.endsWith('.js')) {
                 try {
                     const commandModule = require(fullPath);
-                    let command: Command;
-    
+                    let commandOrSubcommand: Command | Subcommand;
+
                     if (typeof commandModule === 'function') {
-                        command = commandModule(this.bot);
+                        commandOrSubcommand = commandModule(this.bot);
                     } else if (commandModule.default) {
-                        if (typeof commandModule.default === 'function') {
-                            command = commandModule.default(this.bot);
-                        } else {
-                            command = commandModule.default;
-                        }
+                        commandOrSubcommand = typeof commandModule.default === 'function' 
+                            ? commandModule.default(this.bot) 
+                            : commandModule.default;
                     } else {
-                        command = commandModule;
+                        commandOrSubcommand = commandModule;
                     }
-    
-                    if (!command.type) {
-                        console.warn(`Skipping invalid command in ${fullPath}: Missing type`, command);
-                        continue;
+
+                    if ('subcommand' in commandOrSubcommand) {
+                        const subcommand = commandOrSubcommand as Subcommand;
+                        if (!subcommand.parent) {
+                            console.warn(`Skipping subcommand in ${fullPath}: Missing parent property`);
+                            continue;
+                        }
+                        if (!this.subcommands.has(subcommand.parent)) {
+                            this.subcommands.set(subcommand.parent, []);
+                        }
+                        this.subcommands.get(subcommand.parent)!.push(subcommand);
+                        console.log(`Loaded subcommand: ${subcommand.parent}/${subcommand.subcommand} from ${fullPath}`);
+                    } else {
+                        const command = commandOrSubcommand as Command;
+                        if (!command.type) {
+                            console.warn(`Skipping invalid command in ${fullPath}: Missing type`);
+                            continue;
+                        }
+                        if (command.type !== 'interactionCreate' && !command.name) {
+                            console.warn(`Skipping invalid command in ${fullPath}: Missing name (required for ${command.type} type)`);
+                            continue;
+                        }
+                        if (!this.commands.has(command.type)) {
+                            this.commands.set(command.type, new Map());
+                        }
+                        this.commands.get(command.type)!.set(command.name || '', command);
+                        console.log(`Loaded command: ${command.name || 'unnamed'} for type: ${command.type} from ${fullPath}`);
                     }
-                    
-                    if (command.type !== 'interactionCreate' && !command.name) {
-                        console.warn(`Skipping invalid command in ${fullPath}: Missing name (required for ${command.type} type)`, command);
-                        continue;
-                    }
-    
-                    if (!this.commands.has(command.type)) {
-                        this.commands.set(command.type, new Map());
-                    }
-                    this.commands.get(command.type)!.set(command.name || '', command); 
-                    console.log(`Loaded command: ${command.name || 'unnamed'} for type: ${command.type} from ${fullPath}`);
                 } catch (error) {
                     console.error(`Error loading command from ${fullPath}:`, error);
                 }
