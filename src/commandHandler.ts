@@ -7,6 +7,7 @@ import config from './secret/config.json';
 interface Subcommand {
     parent?: string;
     subcommand: string;
+    description: string;
     options: Eris.ApplicationCommandOptions[];
     execute: (interaction: Eris.CommandInteraction, bot: Eris.Client) => Promise<void>;
     autocomplete?: (interaction: Eris.AutocompleteInteraction, bot: Eris.Client) => Promise<void>;
@@ -197,7 +198,7 @@ export class CommandHandler {
                         type: cmd.interactionType,
                         options: [...(cmd.options || []), ...subcommands.map(sc => ({
                             name: sc.subcommand,
-                            description: sc.subcommand.charAt(0).toUpperCase() + sc.subcommand.slice(1),
+                            description: sc.description,
                             type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
                             options: sc.options as Eris.ApplicationCommandOptionsWithValue[]
                         }))]
@@ -212,7 +213,7 @@ export class CommandHandler {
                             ...(cmd.options || []),
                             ...subcommands.map(sc => ({
                                 name: sc.subcommand,
-                                description: sc.subcommand.charAt(0).toUpperCase() + sc.subcommand.slice(1),
+                                description: sc.description,
                                 type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
                                 options: sc.options as Eris.ApplicationCommandOptionsWithValue[]
                             }))
