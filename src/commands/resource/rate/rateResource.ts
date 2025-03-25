@@ -1,6 +1,7 @@
 import Eris from 'eris';
-import { Command } from '../../types/command';
-import { databaseManager } from '../../lib/database';
+import { Command } from '../../../types/command';
+import { databaseManager } from '../../../lib/database';
+
 export default (bot: Eris.Client): Command => ({
     name: 'resource_rate',
     description: 'Rate a resource',

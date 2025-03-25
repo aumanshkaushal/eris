@@ -1,7 +1,7 @@
 import Eris from 'eris';
-import { Command } from '../../types/command';
-import { databaseManager } from '../../lib/database';
-import { blue } from '../../secret/emoji.json';
+import { Command } from '../../../types/command';
+import { databaseManager } from '../../../lib/database';
+import { blue } from '../../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({
     name: 'resource_rate_modal',
