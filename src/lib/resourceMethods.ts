@@ -12,11 +12,22 @@ export async function serveResources(db: Client, tag: string = 'ALL', search: st
         : "SELECT id, title FROM resources WHERE tag = ? AND status = 'active'";
     const { rows } = await db.execute({ sql: query, args: tag === 'ALL' ? [] : [tag] });
     let resources = rows.map(row => ({ name: row.title as string, value: row.id as string }));
+    let resultResources: { name: string, value: string }[] = [];
     if (search) {
-        resources = filter(resources, search, { key: 'name' });
+        const idMatch = resources.find(resource => resource.value.toLowerCase() === search.toLowerCase());
+        if (idMatch) {
+            resultResources.push(idMatch);
+            resources = resources.filter(resource => resource.value !== idMatch.value);
+        }
+        
+        const filteredResources = filter(resources, search, { key: 'name' });
+        resultResources = resultResources.concat(filteredResources);
+    } else {
+        resultResources = resources;
     }
-    console.log(`serveResources: tag=${tag}, search=${search}, results=${resources.length}`);
-    return resources.slice(0, 25);
+    
+    console.log(`serveResources: tag=${tag}, search=${search}, results=${resultResources.length}`);
+    return resultResources.slice(0, 25);
 }
 
 export async function getAverageRating(db: Client, resourceID: string): Promise<number | string> {
