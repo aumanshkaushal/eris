@@ -181,11 +181,27 @@ export class CommandHandler {
     }
 
     async registerSlashCommands(): Promise<void> {
-        const interactionCommands = this.commands.get('interactionCreate');
-        if (!interactionCommands) {
-            console.log('No interaction commands to register');
-            return;
-        }
+        const interactionCommands = this.commands.get('interactionCreate') || new Map();
+        const allSubcommands = this.subcommands;
+
+        allSubcommands.forEach((subs, parentName) => {
+            if (!interactionCommands.has(parentName)) {
+                const implicitCommand: Command = {
+                    name: parentName,
+                    description: `Manage ${parentName}`,
+                    type: 'interactionCreate',
+                    interactionType: Eris.Constants.ApplicationCommandTypes.CHAT_INPUT,
+                    options: [],
+                    execute: async (interaction: Eris.CommandInteraction) => {
+                        await interaction.createFollowup({
+                            embeds: [{ color: 0xFF0000, description: '❌ Please use a subcommand.' }]
+                        });
+                    }
+                };
+                interactionCommands.set(parentName, implicitCommand);
+                console.log(`Generated implicit command: ${parentName} for subcommands`);
+            }
+        });
 
         const commands: Eris.ApplicationCommandBulkEditOptions<false, Eris.ApplicationCommandTypes>[] = 
             Array.from(interactionCommands.values())
@@ -196,12 +212,12 @@ export class CommandHandler {
                         name: cmd.name,
                         description: cmd.description,
                         type: cmd.interactionType,
-                        options: [...(cmd.options || []), ...subcommands.map(sc => ({
+                        options: subcommands.map(sc => ({
                             name: sc.subcommand,
-                            description: sc.description,
+                            description: sc.description || `${sc.subcommand} command`,
                             type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
                             options: sc.options as Eris.ApplicationCommandOptionsWithValue[]
-                        }))]
+                        }))
                     });
                     return {
                         name: cmd.name!,
@@ -213,7 +229,7 @@ export class CommandHandler {
                             ...(cmd.options || []),
                             ...subcommands.map(sc => ({
                                 name: sc.subcommand,
-                                description: sc.description,
+                                description: sc.description || `${sc.subcommand} command`,
                                 type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
                                 options: sc.options as Eris.ApplicationCommandOptionsWithValue[]
                             }))
