@@ -1,35 +1,26 @@
 import Eris from 'eris';
-import { databaseManager } from '../../lib/database';
+import { databaseManager } from '../../../lib/database';
 
 const STAFF_ROLE_ID = '1143906181182664814';
 const STAFF_USER_ID = '428191892950220800';
 
 export default (bot: Eris.Client) => ({
     parent: 'resource',
-    subcommand: 'retag',
-    description: 'Modify the tag of a resource',
+    subcommand: 'relink',
+    description: 'Modify the link of a resource',
     options: [
         {
             name: 'id',
-            description: 'The ID of the resource to retag',
+            description: 'The ID of the resource to relink',
             type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
             required: true,
             autocomplete: true
         },
         {
-            name: 'tag',
-            description: 'The new tag for the resource',
+            name: 'link',
+            description: 'The new link of the resource',
             type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
-            required: true,
-            choices: [
-                { name: 'Grade IX', value: 'IX' },
-                { name: 'Grade X', value: 'X' },
-                { name: 'Grade XI', value: 'XI' },
-                { name: 'Grade XII', value: 'XII' },
-                { name: 'JEE', value: 'JEE' },
-                { name: 'NEET', value: 'NEET' },
-                { name: 'General', value: 'GEN' }
-            ]
+            required: true
         }
     ],
     execute: async (interaction: Eris.CommandInteraction) => {
@@ -49,7 +40,7 @@ export default (bot: Eris.Client) => ({
 
         const subCommand = interaction.data.options![0] as Eris.InteractionDataOptionsSubCommand;
         const id = (subCommand.options!.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
-        const newTag = (subCommand.options!.find(opt => opt.name === 'tag') as Eris.InteractionDataOptionsString).value;
+        const newLink = (subCommand.options!.find(opt => opt.name === 'link') as Eris.InteractionDataOptionsString).value;
 
         const resource = await databaseManager.getResource(id);
         if (!resource || resource.status !== 'active') {
@@ -62,13 +53,24 @@ export default (bot: Eris.Client) => ({
             return;
         }
 
-        const success = await databaseManager.editTag(id, newTag, userId);
+        const urlPattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
+        if (!urlPattern.test(newLink)) {
+            await interaction.createFollowup({
+                embeds: [{
+                    color: 0xFF0000,
+                    description: '❌ Please provide a valid URL starting with http:// or https://'
+                }]
+            });
+            return;
+        }
+
+        const success = await databaseManager.editUrl(id, newLink, userId);
         await interaction.createFollowup({
             embeds: [{
                 color: success ? 0x00FF00 : 0xFF0000,
                 description: success 
-                    ? `✅ Successfully retagged resource ${id} to "${newTag}"`
-                    : `❌ Failed to retag resource ${id}`
+                    ? `✅ Successfully updated link for resource ${id}`
+                    : `❌ Failed to update link for resource ${id}`
             }]
         });
     },

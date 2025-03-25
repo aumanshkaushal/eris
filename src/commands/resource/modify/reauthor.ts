@@ -1,25 +1,23 @@
 import Eris from 'eris';
-import { databaseManager } from '../../lib/database';
-
-const STAFF_ROLE_ID = '1143906181182664814';
-const STAFF_USER_ID = '428191892950220800';
+import { databaseManager } from '../../../lib/database';
+import { supportManagerRoleID, developerID } from '../../../secret/config.json'
 
 export default (bot: Eris.Client) => ({
     parent: 'resource',
-    subcommand: 'rename',
-    description: 'Modify the name of a resource',
+    subcommand: 'reauthor',
+    description: 'Modify the author of a resource',
     options: [
         {
             name: 'id',
-            description: 'The ID of the resource to rename',
+            description: 'The ID of the resource to reauthor',
             type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
             required: true,
             autocomplete: true
         },
         {
-            name: 'name',
-            description: 'The new name of the resource',
-            type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+            name: 'user',
+            description: 'The user to set as new author',
+            type: Eris.Constants.ApplicationCommandOptionTypes.USER,
             required: true
         }
     ],
@@ -28,7 +26,7 @@ export default (bot: Eris.Client) => ({
         const member = interaction.member;
         const userId = interaction.member?.id || interaction.user!.id;
 
-        if (!member || (!member.roles.includes(STAFF_ROLE_ID) && userId !== STAFF_USER_ID)) {
+        if (!member || (!member.roles.includes(supportManagerRoleID) && userId !== developerID)) {
             await interaction.createFollowup({
                 embeds: [{
                     color: 0xFF0000,
@@ -40,7 +38,7 @@ export default (bot: Eris.Client) => ({
 
         const subCommand = interaction.data.options![0] as Eris.InteractionDataOptionsSubCommand;
         const id = (subCommand.options!.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
-        const newName = (subCommand.options!.find(opt => opt.name === 'name') as Eris.InteractionDataOptionsString).value;
+        const newAuthor = (subCommand.options!.find(opt => opt.name === 'user') as Eris.InteractionDataOptionsUser).value;
 
         const resource = await databaseManager.getResource(id);
         if (!resource || resource.status !== 'active') {
@@ -53,13 +51,13 @@ export default (bot: Eris.Client) => ({
             return;
         }
 
-        const success = await databaseManager.editTitle(id, newName, userId);
+        const success = await databaseManager.editAuthor(id, newAuthor, userId);
         await interaction.createFollowup({
             embeds: [{
                 color: success ? 0x00FF00 : 0xFF0000,
                 description: success 
-                    ? `✅ Successfully renamed resource ${id} to "${newName}"`
-                    : `❌ Failed to rename resource ${id}`
+                    ? `✅ Successfully updated author for resource ${id} to <@${newAuthor}>`
+                    : `❌ Failed to update author for resource ${id}`
             }]
         });
     },

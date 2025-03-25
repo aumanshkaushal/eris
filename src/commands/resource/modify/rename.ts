@@ -1,29 +1,30 @@
 import Eris from 'eris';
-import { databaseManager } from '../../lib/database';
+import { databaseManager } from '../../../lib/database';
 
 const STAFF_ROLE_ID = '1143906181182664814';
 const STAFF_USER_ID = '428191892950220800';
 
 export default (bot: Eris.Client) => ({
     parent: 'resource',
-    subcommand: 'redescribe',
-    description: 'Modify the description of a resource',
+    subcommand: 'rename',
+    description: 'Modify the name of a resource',
     options: [
         {
             name: 'id',
-            description: 'The ID of the resource to redescribe',
+            description: 'The ID of the resource to rename',
             type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
             required: true,
             autocomplete: true
         },
         {
-            name: 'description',
-            description: 'The new description of the resource ("none" to remove description)',
+            name: 'name',
+            description: 'The new name of the resource',
             type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
             required: true
         }
     ],
     execute: async (interaction: Eris.CommandInteraction) => {
+        await interaction.defer();
         const member = interaction.member;
         const userId = interaction.member?.id || interaction.user!.id;
 
@@ -39,7 +40,7 @@ export default (bot: Eris.Client) => ({
 
         const subCommand = interaction.data.options![0] as Eris.InteractionDataOptionsSubCommand;
         const id = (subCommand.options!.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
-        const newDesc = (subCommand.options!.find(opt => opt.name === 'description') as Eris.InteractionDataOptionsString).value;
+        const newName = (subCommand.options!.find(opt => opt.name === 'name') as Eris.InteractionDataOptionsString).value;
 
         const resource = await databaseManager.getResource(id);
         if (!resource || resource.status !== 'active') {
@@ -52,13 +53,13 @@ export default (bot: Eris.Client) => ({
             return;
         }
 
-        const success = await databaseManager.editDescription(id, newDesc, userId);
+        const success = await databaseManager.editTitle(id, newName, userId);
         await interaction.createFollowup({
             embeds: [{
                 color: success ? 0x00FF00 : 0xFF0000,
                 description: success 
-                    ? `✅ Successfully updated description for resource ${id}`
-                    : `❌ Failed to update description for resource ${id}`
+                    ? `✅ Successfully renamed resource ${id} to "${newName}"`
+                    : `❌ Failed to rename resource ${id}`
             }]
         });
     },

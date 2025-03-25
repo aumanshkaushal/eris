@@ -1,7 +1,7 @@
 import Eris from 'eris';
-import { databaseManager } from '../../lib/database';
-import { blue, right, wrong, stars } from '../../secret/emoji.json';
-import { resourceLibraryChannelID } from '../../secret/config.json';
+import { databaseManager } from '../../../lib/database';
+import { blue, right, wrong, stars } from '../../../secret/emoji.json';
+import { resourceLibraryChannelID } from '../../../secret/config.json';
 
 export default (bot: Eris.Client) => ({
     parent: 'resource',
