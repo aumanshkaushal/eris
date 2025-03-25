@@ -4,6 +4,9 @@ import { databaseManager } from '../../lib/database';
 import { stars, right, wrong, blue, heart } from '../../secret/emoji.json';
 import { resourceLibraryChannelID } from '../../secret/config.json';
 
+const STAFF_ROLE_ID = '1143906181182664814';
+const STAFF_USER_ID = '428191892950220800';
+
 export default (bot: Eris.Client): Command => ({
     name: 'resource',
     description: 'Manage resources by searching or adding',
@@ -79,7 +82,109 @@ export default (bot: Eris.Client): Command => ({
                     required: false
                 }
             ]
-        }
+        },{
+            name: "rename",
+            type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+            description: "Rename a resource",
+            options: [
+                {
+                    name: "id",
+                    description: "The ID of the resource to rename",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true,
+                    autocomplete: true
+                },
+                {
+                    name: "name",
+                    description: "The new name of the resource",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true
+                }]
+        },{
+            name: "retag",
+            type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+            description: "Retag a resource",
+            options: [
+                {
+                    name: "id",
+                    description: "The ID of the resource to retag",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true,
+                    autocomplete: true
+                },
+                {
+                    name: "tag",
+                    description: "The new tag for the resource",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true,
+                    choices: [
+                        { name: 'Grade IX', value: 'IX' },
+                        { name: 'Grade X', value: 'X' },
+                        { name: 'Grade XI', value: 'XI' },
+                        { name: 'Grade XII', value: 'XII' },
+                        { name: 'JEE', value: 'JEE' },
+                        { name: 'NEET', value: 'NEET' },
+                        { name: 'General', value: 'GEN' }
+                    ]
+                }
+            ]
+        },{
+            name: "relink",
+            type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+            description: "Relink a resource",
+            options: [
+                {
+                    name: "id",
+                    description: "The ID of the resource to rename",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true,
+                    autocomplete: true
+                },
+                {
+                    name: "link",
+                    description: "The new link of the resource",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true
+                }]
+        },{
+            name: "redescribe",
+            type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+            description: "Redescribe a resource",
+            options: [
+                {
+                    name: "id",
+                    description: "The ID of the resource to rename",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true,
+                    autocomplete: true
+                },
+                {
+                    name: "description",
+                    description: "The new description of the resource",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true
+                }]
+        },
+        {
+            name: "reauthor",
+            type: Eris.Constants.ApplicationCommandOptionTypes.SUB_COMMAND,
+            description: "Reauthor a resource",
+            options: [
+                {
+                    name: "id",
+                    description: "The ID of the resource to reauthor",
+                    type: Eris.Constants.ApplicationCommandOptionTypes.STRING,
+                    required: true,
+                    autocomplete: true
+                },
+                {
+                    name: 'user',
+                    description: 'The user to reward or deduct points from',
+                    type: Eris.Constants.ApplicationCommandOptionTypes.USER,
+                    required: true
+                } as Eris.ApplicationCommandOptionsUser,
+            ]
+        },
     ],
     bot,
     async execute(interaction: Eris.Interaction): Promise<void> {
@@ -91,6 +196,25 @@ export default (bot: Eris.Client): Command => ({
         try {
             if (!subCommand.options) {
                 throw new Error('Subcommand options are undefined');
+            }
+
+            const modifyingCommands = ['rename', 'retag', 'relink', 'redescribe', 'reauthor'];
+            if (modifyingCommands.includes(subCommand.name)) {
+                const member = interaction.member;
+                const userId = interaction.member?.id || interaction.user!.id;
+                
+                if (!member || (
+                    !member.roles.includes(STAFF_ROLE_ID) && 
+                    userId !== STAFF_USER_ID
+                )) {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: '❌ You do not have permission to modify resources. This command requires staff privileges.'
+                        }]
+                    });
+                    return;
+                }
             }
 
             if (subCommand.name === 'search') {
@@ -276,6 +400,147 @@ export default (bot: Eris.Client): Command => ({
                     }]
                 })
             }
+            else if (subCommand.name === 'rename') {
+                const id = (subCommand.options.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
+                const newName = (subCommand.options.find(opt => opt.name === 'name') as Eris.InteractionDataOptionsString).value;
+                
+                const resource = await databaseManager.getResource(id);
+                if (!resource || resource.status !== 'active') {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: `❌ Resource ${id} not found or is not active`
+                        }]
+                    });
+                    return;
+                }
+                
+                const success = await databaseManager.editTitle(id, newName, interaction.member?.id || interaction.user!.id);
+                
+                await interaction.createFollowup({
+                    embeds: [{
+                        color: success ? 0x00FF00 : 0xFF0000,
+                        description: success 
+                            ? `✅ Successfully renamed resource ${id} to "${newName}"`
+                            : `❌ Failed to rename resource ${id}`
+                    }]
+                });
+            }
+            else if (subCommand.name === 'retag') {
+                const id = (subCommand.options.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
+                const newTag = (subCommand.options.find(opt => opt.name === 'tag') as Eris.InteractionDataOptionsString).value;
+                
+                const resource = await databaseManager.getResource(id);
+                if (!resource || resource.status !== 'active') {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: `❌ Resource ${id} not found or is not active`
+                        }]
+                    });
+                    return;
+                }
+                
+                const success = await databaseManager.editTag(id, newTag, interaction.member?.id || interaction.user!.id);
+                
+                await interaction.createFollowup({
+                    embeds: [{
+                        color: success ? 0x00FF00 : 0xFF0000,
+                        description: success 
+                            ? `✅ Successfully retagged resource ${id} to "${newTag}"`
+                            : `❌ Failed to retag resource ${id}`
+                    }]
+                });
+            }
+            else if (subCommand.name === 'relink') {
+                const id = (subCommand.options.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
+                const newLink = (subCommand.options.find(opt => opt.name === 'link') as Eris.InteractionDataOptionsString).value;
+                
+                const resource = await databaseManager.getResource(id);
+                if (!resource || resource.status !== 'active') {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: `❌ Resource ${id} not found or is not active`
+                        }]
+                    });
+                    return;
+                }
+                
+                const urlPattern = /^(https?:\/\/[^\s$.?#].[^\s]*)$/i;
+                if (!urlPattern.test(newLink)) {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: '❌ Please provide a valid URL starting with http:// or https://'
+                        }]
+                    });
+                    return;
+                }
+                
+                const success = await databaseManager.editUrl(id, newLink, interaction.member?.id || interaction.user!.id);
+                
+                await interaction.createFollowup({
+                    embeds: [{
+                        color: success ? 0x00FF00 : 0xFF0000,
+                        description: success 
+                            ? `✅ Successfully updated link for resource ${id}`
+                            : `❌ Failed to update link for resource ${id}`
+                    }]
+                });
+            }
+            else if (subCommand.name === 'redescribe') {
+                const id = (subCommand.options.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
+                const newDesc = (subCommand.options.find(opt => opt.name === 'description') as Eris.InteractionDataOptionsString).value;
+                
+                const resource = await databaseManager.getResource(id);
+                if (!resource || resource.status !== 'active') {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: `❌ Resource ${id} not found or is not active`
+                        }]
+                    });
+                    return;
+                }
+                
+                const success = await databaseManager.editDescription(id, newDesc, interaction.member?.id || interaction.user!.id);
+                
+                await interaction.createFollowup({
+                    embeds: [{
+                        color: success ? 0x00FF00 : 0xFF0000,
+                        description: success 
+                            ? `✅ Successfully updated description for resource ${id}`
+                            : `❌ Failed to update description for resource ${id}`
+                    }]
+                });
+            }
+            else if (subCommand.name === 'reauthor') {
+                const id = (subCommand.options.find(opt => opt.name === 'id') as Eris.InteractionDataOptionsString).value;
+                const newAuthor = (subCommand.options.find(opt => opt.name === 'user') as Eris.InteractionDataOptionsUser).value;
+                
+                const resource = await databaseManager.getResource(id);
+                if (!resource || resource.status !== 'active') {
+                    await interaction.createFollowup({
+                        embeds: [{
+                            color: 0xFF0000,
+                            description: `❌ Resource ${id} not found or is not active`
+                        }]
+                    });
+                    return;
+                }
+                
+                const success = await databaseManager.editAuthor(id, newAuthor, interaction.member?.id || interaction.user!.id);
+                
+                await interaction.createFollowup({
+                    embeds: [{
+                        color: success ? 0x00FF00 : 0xFF0000,
+                        description: success 
+                            ? `✅ Successfully updated author for resource ${id} to <@${newAuthor}>`
+                            : `❌ Failed to update author for resource ${id}`
+                    }]
+                });
+            }
         } catch (error) {
             console.error('Error in resource command:', error);
             await interaction.createFollowup({
@@ -288,21 +553,51 @@ export default (bot: Eris.Client): Command => ({
     },
     async autocomplete(interaction: Eris.AutocompleteInteraction): Promise<void> {
         const subCommand = interaction.data.options[0] as Eris.InteractionDataOptionsSubCommand;
-        if (subCommand.name !== 'search' || !subCommand.options) return;
+        if (!subCommand.options) return;
 
         const focusedOption = subCommand.options.find(opt => 'focused' in opt && opt.focused) as Eris.InteractionDataOptionsString | undefined;
-        if (!focusedOption || focusedOption.name !== 'name') return;
+        if (!focusedOption) return;
 
-        const tagOption = subCommand.options.find(opt => opt.name === 'tag') as Eris.InteractionDataOptionsString | undefined;
-        const tag = tagOption?.value || 'ALL';
-        const search = focusedOption.value || '';
+        if (subCommand.name === 'search' && focusedOption.name === 'name') {
+            const tagOption = subCommand.options.find(opt => opt.name === 'tag') as Eris.InteractionDataOptionsString | undefined;
+            const tag = tagOption?.value || 'ALL';
+            const search = focusedOption.value || '';
 
-        const resources = await databaseManager.serveResources(tag, search);
-        await interaction.acknowledge(
-            resources.map(resource => ({
-                name: resource.name,
-                value: resource.value
-            }))
-        );
+            const resources = await databaseManager.serveResources(tag, search);
+            await interaction.acknowledge(
+                resources.map(resource => {
+                    const idPart = ` (${resource.value})`;
+                    const maxTitleLength = 100 - idPart.length;
+                    let displayName = resource.name;
+                    if (displayName.length > maxTitleLength) {
+                    displayName = displayName.substring(0, maxTitleLength - 3) + '...';
+                    }
+                    const fullName = `${displayName}${idPart}`;
+                    return {
+                    name: fullName,
+                    value: resource.value
+                    };
+                })
+            );
+        }
+        else if (['rename', 'retag', 'relink', 'redescribe', 'reauthor'].includes(subCommand.name) && focusedOption.name === 'id') {
+            const search = focusedOption.value || '';
+            const resources = await databaseManager.serveResources('ALL', search);
+            await interaction.acknowledge(
+                resources.map(resource => {
+                    const idPart = ` (${resource.value})`;
+                    const maxTitleLength = 100 - idPart.length;
+                    let displayName = resource.name;
+                    if (displayName.length > maxTitleLength) {
+                        displayName = displayName.substring(0, maxTitleLength - 3) + '...';
+                    }
+                    const fullName = `${displayName}${idPart}`;
+                    return {
+                        name: fullName,
+                        value: resource.value
+                    };
+                })
+            );
+        }
     }
 });
