@@ -1,8 +1,6 @@
 import Eris from 'eris';
 import { databaseManager } from '../../../lib/database';
-
-const STAFF_ROLE_ID = '1143906181182664814';
-const STAFF_USER_ID = '428191892950220800';
+import { supportManagerRoleID, developerID } from '../../../secret/config.json'
 
 export default (bot: Eris.Client) => ({
     parent: 'resource',
@@ -27,7 +25,7 @@ export default (bot: Eris.Client) => ({
         const member = interaction.member;
         const userId = interaction.member?.id || interaction.user!.id;
 
-        if (!member || (!member.roles.includes(STAFF_ROLE_ID) && userId !== STAFF_USER_ID)) {
+        if (!member || (!member.roles.includes(supportManagerRoleID) && userId !== developerID)) {
             await interaction.createFollowup({
                 embeds: [{
                     color: 0xFF0000,

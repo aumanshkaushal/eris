@@ -1,5 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
+import { developerID } from '../../secret/config.json';
 import { databaseManager } from '../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
@@ -23,7 +24,7 @@ export default (bot: Eris.Client): Command => ({
             const pointsInput = modalInteraction.data.components[0].components[0] as Eris.ModalSubmitInteractionDataComponent;
             const points = parseInt(pointsInput.value, 10);
 
-            if (!modalInteraction.member?.roles.includes('1143906181182664814') && modalInteraction.member?.user.id !== '428191892950220800') {
+            if (!modalInteraction.member?.roles.includes('1143906181182664814') && modalInteraction.member?.user.id !== developerID) {
                 await modalInteraction.createMessage({
                     content: 'You do not have the required role to reward users!',
                     flags: Eris.Constants.MessageFlags.EPHEMERAL

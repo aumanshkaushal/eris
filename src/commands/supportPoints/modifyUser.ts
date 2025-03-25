@@ -1,5 +1,6 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
+import { developerID } from '../../secret/config.json';
 
 export default (bot: Eris.Client): Command => ({
     name: 'Modify Support Points',
@@ -12,7 +13,7 @@ export default (bot: Eris.Client): Command => ({
         }
 
         try {
-            if (!interaction.member?.roles.includes('1143906181182664814') && interaction.member?.user.id !== '428191892950220800') {
+            if (!interaction.member?.roles.includes('1143906181182664814') && interaction.member?.user.id !== developerID) {
                 await interaction.createMessage({
                     content: 'You do not have the required role to reward users!',
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
