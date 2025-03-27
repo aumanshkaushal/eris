@@ -72,7 +72,7 @@ export class CommandHandler {
                                             console.log(`Successfully executed subcommand: ${command.name}/${subcommandName}`);
                                         } catch (error) {
                                             console.error(`Error executing subcommand ${command.name}/${subcommandName}:`, error);
-                                            await commandInteraction.createFollowup({
+                                            await commandInteraction.createMessage({
                                                 embeds: [{
                                                     color: 0xFF0000,
                                                     description: '❌ An error occurred while processing the command.'
@@ -88,7 +88,7 @@ export class CommandHandler {
                                     console.log(`Successfully executed command: ${command.name}`);
                                 } catch (error) {
                                     console.error(`Error executing slash command ${command.name}:`, error);
-                                    await commandInteraction.createFollowup({
+                                    await commandInteraction.createMessage({
                                         embeds: [{
                                             color: 0xFF0000,
                                             description: '❌ An error occurred while processing the command.'
