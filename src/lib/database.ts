@@ -12,18 +12,18 @@ export class DatabaseManager {
         const authToken = process.env.TURSO_AUTH_TOKEN;
 
         this.db = createClient({
-            url: localPath,
-            ...(syncUrl && authToken ? {
-                syncUrl,
-                authToken,
-                syncInterval: 3 * 1000
+            url: isProd ? syncUrl! : localPath,
+            ...(isProd ? { authToken: authToken! } : syncUrl && authToken ? {
+            syncUrl,
+            authToken,
+            syncInterval: 3 * 1000
             } : {})
         });
         this.initializeSchema();
     }
 
     async sync() {
-        if (this.db.sync) {
+        if (process.env.NODE_ENV!='production') {
             await this.db.sync();
         } else {
             console.error("Sync not supported: missing syncUrl or authToken");
