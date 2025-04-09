@@ -6,6 +6,7 @@ src/secret/serviceAccountKey.json
 src/secret/emoji.json
 src/secret/firebase.json
 src/secret/roles.json
+src/secret/channels.json
 dev.db
 prod.db
 prod.db.backup
