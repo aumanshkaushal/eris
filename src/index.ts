@@ -12,8 +12,6 @@ const commandHandler = new CommandHandler(bot);
 commandHandler.registerEvents();
 
 bot.on("ready", async () => {
-    console.log(`TURSO_URL: ${process.env.TURSO_DATABASE_URL}, TOKEN: ${process.env.TURSO_AUTH_TOKEN ? 'set' : 'unset'}`);
-    await databaseManager.sync();
     console.log(`Ready on ${bot.user.username}, DB: ${databaseManager ? 'ready' : 'not ready'}`);
     bot.editStatus("idle", { name: "over the server", type: 3 });
     await commandHandler.registerSlashCommands();
