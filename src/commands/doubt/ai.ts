@@ -4,6 +4,7 @@ import fetch from 'node-fetch';
 import { geminiAPIKey, guildID } from '../../secret/config.json';
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import roles from '../../secret/roles.json'
+import { databaseManager } from '../../lib/database';
 
 export default (bot: Eris.Client): Command => ({
     name: 'doubt_ai',
@@ -16,12 +17,16 @@ export default (bot: Eris.Client): Command => ({
         await interaction.defer(Eris.Constants.MessageFlags.EPHEMERAL);
 
         try {
-            let imageUrl = interaction.message.embeds[0]?.image?.url;
+            let doubt = await databaseManager.getDoubtById(interaction.message.embeds[0]?.footer?.text || '');
+            let imageUrl = doubt?.imageUrl;
+            let mimeType = 'image/png';
+            let image;
             if (!imageUrl) {
-                throw new Error('No image URL found in message');
+                imageUrl = undefined
+            } else {
+                image = await fetch(imageUrl)
+                mimeType = image.headers.get("Content-Type") || "image/png";
             }
-            let image = await fetch(imageUrl)
-            const mimeType = image.headers.get("Content-Type") || "image/png";
             const genAI = new GoogleGenerativeAI(geminiAPIKey);
             const model = genAI.getGenerativeModel({
                 model: 'gemini-2.0-flash',
@@ -33,13 +38,13 @@ export default (bot: Eris.Client): Command => ({
                     {
                         role: "user",
                         parts: [
-                            { text: `${interaction.message.embeds[0]?.description}\n\nStudent is in Grade ${await getGrade(bot, interaction.member?.id || '')}` || '' },
-                            {
+                            { text: `${doubt.description}\n\nStudent is in Grade ${doubt.grade} and Subject ${doubt.subject}` || '' },
+                            ...(imageUrl ? [{
                                 inlineData: {
                                     mimeType,
                                     data: (await Buffer.from(await image.arrayBuffer())).toString('base64'),
                                 },
-                            },
+                            }] : []),
                         ],
                     },
                 ],
