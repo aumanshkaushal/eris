@@ -70,3 +70,21 @@ export async function getTotalUsers(db: Pool): Promise<number> {
     const { rows } = await db.query(`SELECT COUNT(*) as count FROM users`);
     return Number(rows[0].count) || 0;
 }
+
+export async function setUserPronouns(db: Pool, userId: string, pronouns: string): Promise<void> {
+    const result = await db.query(
+        `UPDATE users SET pronouns = $1 WHERE id = $2`,
+        [pronouns, userId]
+    );
+    if (result.rowCount === 0) {
+        throw new Error(`Failed to update pronouns for user ${userId}`);
+    }
+}
+
+export async function getUserPronouns(db: Pool, userId: string): Promise<string | null> {
+    const { rows } = await db.query(
+        `SELECT pronouns FROM users WHERE id = $1`,
+        [userId]
+    );
+    return rows[0]?.pronouns || null;
+}
