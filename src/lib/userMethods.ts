@@ -88,3 +88,31 @@ export async function getUserPronouns(db: Pool, userId: string): Promise<string 
     );
     return rows[0]?.pronouns || null;
 }
+
+export async function lockStudyMode(db: Pool, userId: string): Promise<void> {
+    const result = await db.query(
+        `UPDATE users SET locked_studymode = TRUE WHERE id = $1`,
+        [userId]
+    );
+    if (result.rowCount === 0) {
+        throw new Error(`Failed to lock study mode for user ${userId}`);
+    }
+}
+
+export async function unlockStudyMode(db: Pool, userId: string): Promise<void> {
+    const result = await db.query(
+        `UPDATE users SET locked_studymode = FALSE WHERE id = $1`,
+        [userId]
+    );
+    if (result.rowCount === 0) {
+        throw new Error(`Failed to unlock study mode for user ${userId}`);
+    }
+}
+
+export async function isStudyModeLocked(db: Pool, userId: string): Promise<boolean> {
+    const { rows } = await db.query(
+        `SELECT locked_studymode FROM users WHERE id = $1`,
+        [userId]
+    );
+    return rows[0]?.locked_studymode || false;
+}
