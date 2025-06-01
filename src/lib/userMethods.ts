@@ -1,69 +1,72 @@
-import { Client } from '@libsql/client';
+import { Pool } from 'pg';
 
-export async function initializeUser(db: Client, userId: string): Promise<void> {
-    const { rows } = await db.execute({ sql: "SELECT id FROM users WHERE id = ?", args: [userId] });
-    if (rows.length) return;
-
-    await db.execute({
-        sql: "INSERT INTO users (id, supportpoints, last_active, bookmark) VALUES (?, ?, ?, ?)",
-        args: [userId, 0, null, JSON.stringify([])]
-    });
+export async function initializeUser(db: Pool, userId: string): Promise<void> {
+    await db.query(
+        `INSERT INTO users (id, supportpoints, last_active, bookmark, pronouns)
+         VALUES ($1, 0, NULL, '{}', NULL)
+         ON CONFLICT (id) DO NOTHING`,
+        [userId]
+    );
 }
 
-export async function getTopUsers(db: Client): Promise<string[]> {
-    const { rows } = await db.execute({
-        sql: "SELECT id FROM users ORDER BY supportpoints DESC LIMIT 10",
-        args: []
-    });
-    return rows.map(row => row.id as string);
+export async function getTopUsers(db: Pool): Promise<any[]> {
+    const { rows } = await db.query(
+        `SELECT id, supportpoints
+         FROM users
+         WHERE supportpoints > 0
+         ORDER BY supportpoints DESC
+         LIMIT 10`
+    );
+    return rows;
 }
 
-export async function getSupportPoints(db: Client, userId: string): Promise<number> {
-    const { rows } = await db.execute({
-        sql: "SELECT supportpoints FROM users WHERE id = ?",
-        args: [userId]
-    });
-    if (!rows.length) {
+export async function getSupportPoints(db: Pool, userId: string): Promise<number> {
+    const { rows } = await db.query(
+        `SELECT supportpoints FROM users WHERE id = $1`,
+        [userId]
+    );
+    return rows[0]?.supportpoints || 0;
+}
+
+export async function addSupportPoints(db: Pool, userId: string, supportPoints: number): Promise<void> {
+
+    if (!Number.isInteger(supportPoints)) {
+        throw new Error(`Support points must be an integer, got: ${supportPoints}`);
+    }
+
+
+    const { rows } = await db.query(
+        `SELECT 1 FROM users WHERE id = $1`,
+        [userId]
+    );
+    if (rows.length === 0) {
         await initializeUser(db, userId);
-        return 0;
     }
-    return rows[0].supportpoints as number || 0;
-}
 
-export async function addSupportPoints(db: Client, userId: string, supportPoints: number): Promise<boolean> {
-    try {
-        const { rows } = await db.execute({
-            sql: "SELECT supportpoints FROM users WHERE id = ?",
-            args: [userId]
-        });
-        if (!rows.length) await initializeUser(db, userId);
-        const currentPoints = rows.length ? (rows[0].supportpoints as number || 0) : 0;
-        await db.execute({
-            sql: "UPDATE users SET supportpoints = ? WHERE id = ?",
-            args: [currentPoints + supportPoints, userId]
-        });
-        return true;
-    } catch (err) {
-        console.error(err);
-        return false;
+    const result = await db.query(
+        `UPDATE users SET supportpoints = supportpoints + $1 WHERE id = $2`,
+        [supportPoints, userId]
+    );
+    if (result.rowCount === 0) {
+        throw new Error(`Failed to update support points for user ${userId}`);
     }
 }
 
-export async function getTotalUsers(db: Client): Promise<number> {
-    const { rows } = await db.execute("SELECT COUNT(*) as total FROM users");
-    return rows[0].total as number || 0;
+export async function getLeaderboardPosition(db: Pool, userId: string): Promise<number> {
+    const { rows } = await db.query(
+        `SELECT rank
+         FROM (
+             SELECT id, RANK() OVER (ORDER BY supportpoints DESC) as rank
+             FROM users
+             WHERE supportpoints > 0
+         ) ranked
+         WHERE id = $1`,
+        [userId]
+    );
+    return rows[0]?.rank || -1;
 }
 
-export async function getLeaderboardPosition(db: Client, userId: string): Promise<number> {
-    const { rows: userRows } = await db.execute({
-        sql: "SELECT supportpoints FROM users WHERE id = ?",
-        args: [userId]
-    });
-    if (!userRows.length) await initializeUser(db, userId);
-    const userPoints = userRows.length ? (userRows[0].supportpoints as number || 0) : 0;
-    const { rows: countRows } = await db.execute({
-        sql: "SELECT COUNT(*) as higher FROM users WHERE supportpoints > ?",
-        args: [userPoints]
-    });
-    return (countRows[0].higher as number || 0) + 1;
+export async function getTotalUsers(db: Pool): Promise<number> {
+    const { rows } = await db.query(`SELECT COUNT(*) as count FROM users`);
+    return Number(rows[0].count) || 0;
 }

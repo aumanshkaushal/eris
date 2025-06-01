@@ -36,10 +36,7 @@ export default (bot: Eris.Client): Command => ({
                 throw new Error('Invalid points value');
             }
 
-            const success = await databaseManager.addSupportPoints(reporter, pointNum);
-            if (!success) {
-                throw new Error('Failed to reward reporter');
-            }
+            await databaseManager.addSupportPoints(reporter, pointNum);
 
             const embedColor = message.embeds[0]?.color;
 
