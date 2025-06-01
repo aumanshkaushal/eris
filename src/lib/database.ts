@@ -64,7 +64,8 @@ export class DatabaseManager {
                     supportpoints INTEGER NOT NULL DEFAULT 0,
                     last_active INTEGER,
                     bookmark JSONB NOT NULL,
-                    pronouns TEXT
+                    pronouns TEXT,
+                    locked_studymode BOOLEAN NOT NULL DEFAULT FALSE
                 );
             `);
 
@@ -208,6 +209,18 @@ export class DatabaseManager {
 
     getUserPronouns(userId: string) {
         return userMethods.getUserPronouns(this.dbPool, userId);
+    }
+
+    lockStudyMode(userId: string) {
+        return userMethods.lockStudyMode(this.dbPool, userId);
+    }
+
+    unlockStudyMode(userId: string) {
+        return userMethods.unlockStudyMode(this.dbPool, userId);
+    }
+
+    isStudyModeLocked(userId: string) {
+        return userMethods.isStudyModeLocked(this.dbPool, userId);
     }
 
     generateDoubtID() {
