@@ -58,7 +58,7 @@ export default (bot: Eris.Client): Command => ({
             const joinedAtText = joinedAtTimestamp
                 ? `<t:${Math.round(joinedAtTimestamp / 1000)}:F> (<t:${Math.round(joinedAtTimestamp / 1000)}:R>)`
                 : 'Not in server';
-
+            const pronouns = await databaseManager.getUserPronouns(target) || 'N/A';
             const embed: Eris.EmbedOptions = {
                 color: 0xFFFFFF,
                 image: {
@@ -74,6 +74,9 @@ export default (bot: Eris.Client): Command => ({
                     ``,
                     `<a:heart:${heart}> **Joined server on:**`,
                     `<:reply:${reply}> ${joinedAtText}`,
+                    ``,
+                    `<a:heart:${heart}> **Pronouns:**`,
+                    `<:reply:${reply}> \`${pronouns}\``,
                     ``,
                     `<a:heart:${heart}> **Resource Statistics:**`,                        
                     `<:replycontinued:${replycontinued}> **Resources Submitted:** \`${await databaseManager.getTotalResourceCountByUser(target)}\``,

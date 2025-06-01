@@ -4,7 +4,7 @@ import { Command } from '../types/command';
 import { herole, sherole, theyrole } from '../secret/roles.json';
 export default (bot: Eris.Client): Command => ({
     name: 'greet',
-    description: 'Simple ping command',
+    description: 'Greet users with a friendly message',
     type: 'messageCreate',
     async execute(msg: Eris.Message): Promise<void> {
         if (msg.author.id === bot.user.id) return;
