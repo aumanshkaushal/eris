@@ -23,13 +23,11 @@ export default (bot: Eris.Client): Command => ({
         try {
             await commandInteraction.defer();
 
-            // Get the target user ID
             let target = (commandInteraction.data.options?.find(option => option.name === 'user') as Eris.InteractionDataOptionsUser)?.value;
             if (!target) {
                 target = commandInteraction.user?.id || commandInteraction.member?.id || '';
             }
 
-            // Fetch the User object
             const user = bot.users.get(target);
             if (!user) {
                 await commandInteraction.createFollowup({
@@ -39,13 +37,11 @@ export default (bot: Eris.Client): Command => ({
                 return;
             }
 
-            // Fetch the GuildMember object
             const guild = bot.guilds.get(commandInteraction.guildID ?? '');
             let member: Eris.Member | undefined;
             if (guild) {
                 member = guild.members.get(target);
                 if (!member) {
-                    // If the member isn't in the cache, try to fetch them
                     try {
                         const members = await guild.fetchMembers({ userIDs: [target], limit: 1 });
                         member = members[0];
@@ -55,16 +51,14 @@ export default (bot: Eris.Client): Command => ({
                 }
             }
 
-            // Calculate timestamps
-            const createdAtTimestamp = user.createdAt ?? Date.now(); // Fallback to current time if createdAt is missing
+            const createdAtTimestamp = user.createdAt ?? Date.now();
             const createdAtSeconds = Math.round(createdAtTimestamp / 1000);
 
-            const joinedAtTimestamp = member?.joinedAt; // joinedAt is undefined if member isn't found
+            const joinedAtTimestamp = member?.joinedAt;
             const joinedAtText = joinedAtTimestamp
                 ? `<t:${Math.round(joinedAtTimestamp / 1000)}:F> (<t:${Math.round(joinedAtTimestamp / 1000)}:R>)`
                 : 'Not in server';
 
-            // Prepare the embed
             const embed: Eris.EmbedOptions = {
                 color: 0xFFFFFF,
                 image: {

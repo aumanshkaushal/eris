@@ -18,14 +18,12 @@ export default (bot: Eris.Client): Command => ({
             await commandInteraction.defer();
 
             const users = await databaseManager.getTopUsers();
-            const leaderboardEntries = await Promise.all(
-                users.map(async (user, index) => {
-                    const supportPoints = await databaseManager.getSupportPoints(user);
-                    return index === 0
-                        ? `<:crown:${crown}> <@${user}> ↦ \`${supportPoints}\``
-                        : `<:frost:${frost}> <@${user}> ↦ \`${supportPoints}\``;
-                })
-            );
+            const leaderboardEntries = users.map((user, index) => {
+                const supportPoints = user.supportpoints;
+                return index === 0
+                    ? `<:crown:${crown}> <@${user.id}> ↦ \`${supportPoints}\``
+                    : `<:frost:${frost}> <@${user.id}> ↦ \`${supportPoints}\``;
+            });
             const leaderboard = leaderboardEntries.join('\n');
 
             await commandInteraction.createFollowup({
