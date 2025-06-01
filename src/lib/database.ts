@@ -202,6 +202,14 @@ export class DatabaseManager {
         return userMethods.getTotalUsers(this.dbPool);
     }
 
+    setUserPronouns(userId: string, pronouns: string) {
+        return userMethods.setUserPronouns(this.dbPool, userId, pronouns);
+    }
+
+    getUserPronouns(userId: string) {
+        return userMethods.getUserPronouns(this.dbPool, userId);
+    }
+
     generateDoubtID() {
         return doubtMethods.generateDoubtID(this.dbPool);
     }
