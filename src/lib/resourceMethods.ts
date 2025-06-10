@@ -59,7 +59,7 @@ export async function getAverageRating(db: Pool, resourceID: string): Promise<nu
         [resourceID]
     );
     if (!rows.length) return "Unrated";
-    const totalRatings = rows.reduce((acc: number, row: any) => acc + (row.rating || 0), 0);
+    const totalRatings = rows.reduce((acc: number, row: any) => acc + (Number(row.rating) || 0), 0);
     return totalRatings / rows.length;
 }
 
@@ -214,7 +214,8 @@ export async function getAverageRatingByUser(db: Pool, userID: string): Promise<
         [userID]
     );
     if (!rows.length) return null;
-    const total = rows.reduce((acc: number, row: any) => acc + (row.rating || 0), 0);
+
+    const total = rows.reduce((acc: number, row: any) => acc + (Number(row.rating) || 0), 0);
     return total / rows.length;
 }
 
