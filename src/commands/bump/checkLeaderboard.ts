@@ -16,14 +16,13 @@ export default (bot: Eris.Client): Command => ({
 
         try {
             await componentInteraction.defer(Eris.Constants.MessageFlags.EPHEMERAL);
-
+            
             const users = await databaseManager.getTopUsers();
             const leaderboardEntries = await Promise.all(
                 users.map(async (user, index) => {
-                    const supportPoints = await databaseManager.getSupportPoints(user);
                     return index === 0
-                        ? `<:crown:${crown}> <@${user}> ↦ \`${supportPoints}\``
-                        : `<:frost:${frost}> <@${user}> ↦ \`${supportPoints}\``;
+                        ? `<:crown:${crown}> <@${user.id}> ↦ \`${user.supportpoints}\``
+                        : `<:frost:${frost}> <@${user.id}> ↦ \`${user.supportpoints}\``;
                 })
             );
             const leaderboard = leaderboardEntries.join('\n');
