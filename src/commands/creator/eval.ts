@@ -1,8 +1,17 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
+import config from '../../secret/config.json';
 import { developerID } from '../../secret/config.json';
 import { right, wrong } from '../../secret/emoji.json';
 import util from 'util';
+import fs from 'fs';
+import path from 'path';
+
+const save_config = () => {
+    const cfgPath = path.resolve(__dirname, "../../../secret/config.json");
+    fs.writeFileSync(cfgPath, JSON.stringify(config, null, 4));
+    return "Config saved!";
+};
 
 export default (bot: Eris.Client): Command => ({
     name: 'eval',
@@ -28,7 +37,12 @@ export default (bot: Eris.Client): Command => ({
             let author = msg.author;
             let member = msg.member;
 
-            let output = await eval(`(async () => { return ${args} })()`);
+            let output = await eval(`(async () => { 
+                const config = require("../../secret/config.json"); 
+                const save_config = ${save_config.toString()};
+                return ${args} 
+            })()`);
+
             output = util.inspect(output, { depth: 0 }).substring(0, 1900);
 
             await bot.createMessage(msg.channel.id, {

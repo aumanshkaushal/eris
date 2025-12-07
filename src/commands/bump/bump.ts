@@ -1,7 +1,8 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { stars, glitters } from '../../secret/emoji.json'
+import emoji from '../../secret/emoji.json'
 import { databaseManager } from '../../lib/database';
+import { winterTheme } from '../../secret/config.json';
 
 export default (bot: Eris.Client): Command => ({
     name: 'bump',
@@ -16,8 +17,8 @@ export default (bot: Eris.Client): Command => ({
 
         await msg.channel.createMessage({
             embeds: [{
-                color: 0xffffff,
-                description: `<a:stars:${stars}> **Thank you for bumping us, <@${user.id}>!**
+                color: winterTheme ? 0x97c1e6 : 0xffffff,
+                description: `${ winterTheme? `<a:blue_candycane:${emoji.blue_candycane}>` : `<a:stars:${emoji.stars}>` } **Thank you for bumping us, <@${user.id}>!**
                 > 1 Support Point has been added to your profile! I will remind you to bump again <t:${Math.round(nextBumpDate/1000)}:R> (<t:${Math.round(nextBumpDate/1000)}:F>).`
             }],
             components: [{
@@ -25,11 +26,11 @@ export default (bot: Eris.Client): Command => ({
                 components: [{
                     type: 2,
                     label: "Check Leaderboard",
-                    style: 2,
+                    style: winterTheme? 1 : 2,
                     custom_id: 'bump_check_leaderboard',
                     emoji: {
-                        id: glitters,
-                        name: 'glitters',
+                        id: winterTheme? emoji.white_butterfly : emoji.glitters,
+                        name: winterTheme? 'white_butterfly' : 'glitters',
                         animated: true
                     }
                 }, {
@@ -46,8 +47,8 @@ export default (bot: Eris.Client): Command => ({
             msg.channel.createMessage({
                 content: '<@&1119667729788567622>',
                 embeds: [{
-                    color: 0xffffff,
-                    description: `<a:stars:1348951777902329866> **It's time to bump!**
+                    color: winterTheme ? 0x97c1e6 : 0xffffff,
+                    description: `${ winterTheme? `<a:white_butterfly:${emoji.white_butterfly}>` : `<a:stars:${emoji.stars}>` } **It's time to bump!**
                     > Run /bump again to receive 1 Support Point!`
                 }]
             })

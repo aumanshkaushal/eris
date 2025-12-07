@@ -1,6 +1,7 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { stars } from '../../secret/emoji.json';
+import { winterTheme } from '../../secret/config.json';
+import emoji from '../../secret/emoji.json';
 
 export default (bot: Eris.Client): Command => ({
     name: 'selftimeout',
@@ -27,7 +28,7 @@ export default (bot: Eris.Client): Command => ({
 
             if (timeInput === 'customtime_info') {
                 await commandInteraction.createFollowup({
-                    content: '⚠️ You can enter custom time in this format: 1w 2d 3h 4m 5s!',
+                    content: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : `⚠️`} You can enter custom time in this format: 1w 2d 3h 4m 5s!`,
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
                 return;
@@ -36,7 +37,7 @@ export default (bot: Eris.Client): Command => ({
             const validFormat = /^(\d+w)?\s*(\d+d)?\s*(\d+h)?\s*(\d+m)?\s*(\d+s)?$/i;
             if (!validFormat.test(timeInput.replace(/\s+/g, ''))) {
                 await commandInteraction.createFollowup({
-                    content: '❌ Please enter a valid time format! Use only numbers and w/d/h/m/s (Example: 1w 2d 3h 4m 5s)',
+                    content: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : `❌`} Please enter a valid time format! Use only numbers and w/d/h/m/s (Example: 1w 2d 3h 4m 5s)`,
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
                 return;
@@ -45,7 +46,7 @@ export default (bot: Eris.Client): Command => ({
             const parsedTime = parseCustomTime(timeInput);
             if (parsedTime === -1) {
                 await commandInteraction.createFollowup({
-                    content: '❌ Please enter a valid time! (Example: 1w 2d 3h 4m 5s)',
+                    content: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : `❌`} Please enter a valid time! (Example: 1w 2d 3h 4m 5s)`,
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
                 return;
@@ -61,15 +62,15 @@ export default (bot: Eris.Client): Command => ({
 
             await commandInteraction.createFollowup({
                 embeds: [{
-                    color: 0xFFFFFF,
-                    description: `<a:stars:${stars}> **Your timeout will automatically be removed on <t:${Math.floor(endTimestamp / 1000)}:F> (<t:${Math.floor(endTimestamp / 1000)}:R>)**`
+                    color: winterTheme ? 0x97c1e6 : 0xffffff,
+                    description: `${winterTheme? `<a:blue_butterfly:${emoji.blue_butterfly}>` : `<a:stars:${emoji.stars}>`} Your timeout will automatically be removed on **<t:${Math.floor(endTimestamp / 1000)}:F> (<t:${Math.floor(endTimestamp / 1000)}:R>)**`
                 }]
             });
 
         } catch (error) {
             console.error('Error executing timeout:', error);
             await commandInteraction.createFollowup({
-                content: '❌ Failed to apply timeout. Please try again later!',
+                content: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : `❌`} Failed to apply timeout. Please try again later!`,
                 flags: Eris.Constants.MessageFlags.EPHEMERAL
             });
         }

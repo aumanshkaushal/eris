@@ -131,7 +131,7 @@ export default (bot: Eris.Client): Command => ({
                     `<:blue:${blue}> **Doubt asked by:** <@${commandInteraction.member?.user.id}>`,
                     `<:blue:${blue}> **Grade:** \`${gradeNum}\``].join('\n'),
                     image: {
-                        url: attachmentUrl? attachmentUrl : 'https://cdn.discordapp.com/attachments/948989141562040370/1117037169840750682/1686392804883.jpg'
+                        url: attachmentUrl? attachmentUrl : 'attachment://cbseCommunityBanner.jpg'
                     },
                     color: 0xFFFFFF,
                     footer: {
@@ -184,6 +184,9 @@ export default (bot: Eris.Client): Command => ({
                         },
                     }]
                 }]
+            }, {
+                file: './assets/cbseCommunityBanner.jpg',
+                name: 'cbseCommunityBanner.jpg'
             });
 
             const messageId = message.id;

@@ -1,7 +1,8 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
 import { databaseManager } from '../../lib/database';
-import { blue, red } from '../../secret/emoji.json';
+import emoji from '../../secret/emoji.json';
+import { winterTheme } from '../../secret/config.json';
 import { studymode } from '../../secret/roles.json';
 
 export default (bot: Eris.Client): Command => ({
@@ -24,21 +25,21 @@ export default (bot: Eris.Client): Command => ({
             if (roles.includes(studymode)) {
                 if (await databaseManager.isStudyModeLocked(userID)) {
                     await interaction.createMessage({
-                        content: `<:red:${red}> You are locked! You cannot exit study mode until the lock is removed.`,
+                        content: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : `<:red:${emoji.red}>`} You are locked! You cannot exit study mode until the lock is removed.`,
                         flags: Eris.Constants.MessageFlags.EPHEMERAL
                     });
                     return;
                 }
                 await commandInteraction.member?.removeRole(studymode);
                 await interaction.createMessage({
-                    content: `<:blue:${blue}> You have exited study mode!`
+                    content: `${winterTheme? `<a:blue_butterfly:${emoji.blue_butterfly}>`: `<:blue:${emoji.blue}>`} You have exited study mode!`
                 });
                 return;
             }
             else {
                 await commandInteraction.member?.addRole(studymode);
                 await interaction.createMessage({
-                    content: `<:blue:${blue}> You have entered study mode!`
+                    content: `${winterTheme? `<a:blue_butterfly:${emoji.blue_butterfly}>`: `<:blue:${emoji.blue}>`} You have entered study mode!`
                 });
                 return;
             }
