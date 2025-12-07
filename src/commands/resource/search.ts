@@ -1,6 +1,8 @@
 import Eris from 'eris';
 import { databaseManager } from '../../lib/database';
-import { stars, heart, wrong } from '../../secret/emoji.json';
+import emoji from '../../secret/emoji.json';
+import { winterTheme } from '../../secret/config.json';
+import fs from 'fs';
 
 export default (bot: Eris.Client) => ({
     parent: 'resource',
@@ -40,8 +42,8 @@ export default (bot: Eris.Client) => ({
         if (!resource) {
             await interaction.createFollowup({
                 embeds: [{
-                    color: 0xFF0000,
-                    description: '❌ Invalid resource selected!'
+                    color: winterTheme? 0xED365B : 0xFF0000,
+                    description: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : '❌'} Invalid resource selected!`
                 }]
             });
             return;
@@ -49,15 +51,15 @@ export default (bot: Eris.Client) => ({
 
         await interaction.createFollowup({
             embeds: [{
-                color: 0xFFFFFF,
+                color: winterTheme? 0x97c1e6 : 0xffffff,
                 title: resource.title,
                 description: [
-                    `『 <a:stars:${stars}> 』» **Resource Tag:** \`${resource.tag}\``,
-                    `『 <a:stars:${stars}> 』» **Submitted By:** <@${resource.author}> | \`${(await bot.users.get(resource.author))?.username}\``,
-                    `『 <a:stars:${stars}> 』» **Resource Link:** [Click Here](${resource.url}) | \`${resource.url}\``,
-                    resource.description ? `『 <a:stars:${stars}> 』» **Description:** \`${resource.description}\`` : ''
+                    `『 ${winterTheme? `<a:blue_candycane:${emoji.blue_candycane}>` : `<a:stars:${emoji.stars}>`} 』» **Resource Tag:** \`${resource.tag}\``,
+                    `『 ${winterTheme? `<a:blue_candycane:${emoji.blue_candycane}>` : `<a:stars:${emoji.stars}>`} 』» **Submitted By:** <@${resource.author}> | \`${(await bot.users.get(resource.author))?.username}\``,
+                    `『 ${winterTheme? `<a:blue_candycane:${emoji.blue_candycane}>` : `<a:stars:${emoji.stars}>`} 』» **Resource Link:** [Click Here](${resource.url}) | \`${resource.url}\``,
+                    resource.description ? `『 ${winterTheme? `<a:blue_candycane:${emoji.blue_candycane}>` : `<a:stars:${emoji.stars}>`} 』» **Description:** \`${resource.description}\`` : ''
                 ].filter(Boolean).join('\n'),
-                image: { url: 'https://cdn.discordapp.com/attachments/948989141562040370/1117037169840750682/1686392804883.jpg' },
+                image: { url: 'attachment://cbseCommunityBanner.jpg' },
                 footer: {
                     text: resourceId,
                     icon_url: interaction.guildID ? bot.guilds.get(interaction.guildID)?.iconURL || undefined : undefined
@@ -67,12 +69,15 @@ export default (bot: Eris.Client) => ({
                 type: Eris.Constants.ComponentTypes.ACTION_ROW,
                 components: [
                     { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.LINK, label: 'Visit', url: resource.url },
-                    { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.PRIMARY, label: 'Rating: ' + Math.round((Number(await databaseManager.getAverageRating(resourceId))) * 10) / 10, custom_id: 'rate', disabled: true, emoji: { id: heart, name: 'heart', animated: true } },
-                    { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.SUCCESS, label: 'Rate Resource', custom_id: 'resource_rate', disabled: false, emoji: { id: stars, name: 'stars', animated: true } },
-                    { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.DANGER, label: 'Report Link', custom_id: 'resource_report', disabled: false, emoji: { id: wrong, name: 'wrong', animated: true } }
+                    { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.PRIMARY, label: 'Rating: ' + Math.round((Number(await databaseManager.getAverageRating(resourceId))) * 10) / 10, custom_id: 'rate', disabled: true, emoji: { id: winterTheme? emoji.blue_butterfly : emoji.heart, name: winterTheme? 'blue_butterfly' : 'heart', animated: true } },
+                    { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.SUCCESS, label: 'Rate Resource', custom_id: 'resource_rate', disabled: false, emoji: { id: winterTheme? emoji.white_butterfly : emoji.stars, name: winterTheme? 'white_butterfly' : 'stars', animated: true } },
+                    { type: Eris.Constants.ComponentTypes.BUTTON, style: Eris.Constants.ButtonStyles.DANGER, label: 'Report Link', custom_id: 'resource_report', disabled: false, emoji: { id: winterTheme? emoji.pink_butterfly : emoji.wrong, name: winterTheme? 'pink_butterfly' : 'wrong', animated: true } }
                 ]
-            }]
-        });
+            }],
+        }, [{
+            file: fs.readFileSync(winterTheme? './assets/cbseCommunityXmasBanner.jpg' : './assets/cbseCommunityBanner.jpg'),
+            name: 'cbseCommunityBanner.jpg'
+        }]);
     },
     autocomplete: async (interaction: Eris.AutocompleteInteraction) => {
         const subCommand = interaction.data.options![0] as Eris.InteractionDataOptionsSubCommand;

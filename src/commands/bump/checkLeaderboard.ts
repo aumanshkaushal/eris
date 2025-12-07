@@ -1,7 +1,9 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
 import { databaseManager } from '../../lib/database';
-import { crown, frost } from '../../secret/emoji.json'
+import emoji from '../../secret/emoji.json'
+import { winterTheme } from '../../secret/config.json';
+import fs from 'fs';
 
 export default (bot: Eris.Client): Command => ({
     name: 'bump_check_leaderboard',
@@ -21,8 +23,8 @@ export default (bot: Eris.Client): Command => ({
             const leaderboardEntries = await Promise.all(
                 users.map(async (user, index) => {
                     return index === 0
-                        ? `<:crown:${crown}> <@${user.id}> ↦ \`${user.supportpoints}\``
-                        : `<:frost:${frost}> <@${user.id}> ↦ \`${user.supportpoints}\``;
+                        ? `${winterTheme? `<:blue_crown:${emoji.blue_crown}>` : `<:crown:${emoji.crown}>`} <@${user.id}> ↦ \`${user.supportpoints}\``
+                        : `<:frost:${emoji.frost}> <@${user.id}> ↦ \`${user.supportpoints}\``;
                 })
             );
             const leaderboard = leaderboardEntries.join('\n');
@@ -33,19 +35,22 @@ export default (bot: Eris.Client): Command => ({
 
             await componentInteraction.createFollowup({
                 embeds: [{
-                    color: 0xffffff,
+                    color: winterTheme ? 0x97c1e6 : 0xffffff,
                     author: {
                         name: componentInteraction.member?.guild.name || 'The CBSE Community',
                         icon_url: componentInteraction.member?.guild.iconURL || undefined
                     },
                     description: leaderboard || 'No users in the leaderboard yet!',
                     image: {
-                        url: 'https://cdn.discordapp.com/attachments/948989141562040370/1117037169840750682/1686392804883.jpg'
+                        url: 'attachment://cbseCommunityBanner.jpg'
                     },
                     footer: {
                         text: `You are currently at #${await databaseManager.getLeaderboardPosition(userID)}/${await databaseManager.getTotalUsers()}`
                     }
-                }]
+                }],
+            }, {
+                file: fs.readFileSync(winterTheme? './assets/cbseCommunityXmasBanner.jpg' : './assets/cbseCommunityBanner.jpg'),
+                name: 'cbseCommunityBanner.jpg'
             });
         } catch (error) {
             console.error('Error generating leaderboard:', error);

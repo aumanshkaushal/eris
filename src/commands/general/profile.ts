@@ -1,7 +1,9 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
 import { databaseManager } from '../../lib/database';
-import { stars, heart, reply, replycontinued } from '../../secret/emoji.json';
+import { winterTheme } from '../../secret/config.json';
+import emoji from '../../secret/emoji.json';
+import fs from 'fs';
 
 export default (bot: Eris.Client): Command => ({
     name: 'profile',
@@ -31,7 +33,7 @@ export default (bot: Eris.Client): Command => ({
             const user = bot.users.get(target);
             if (!user) {
                 await commandInteraction.createFollowup({
-                    content: 'User not found.',
+                    content: `${winterTheme? `<a:pink_butterfly:${emoji.pink_butterfly}>` : `❌`} User not found.`,
                     flags: Eris.Constants.MessageFlags.EPHEMERAL
                 });
                 return;
@@ -60,37 +62,40 @@ export default (bot: Eris.Client): Command => ({
                 : 'Not in server';
             const pronouns = await databaseManager.getUserPronouns(target) || 'N/A';
             const embed: Eris.EmbedOptions = {
-                color: 0xFFFFFF,
+                color: winterTheme ? 0x97c1e6 : 0xffffff,
                 image: {
-                    url: "https://cdn.discordapp.com/attachments/948989141562040370/1117037169840750682/1686392804883.jpg"
+                    url: "attachment://cbseCommunityBanner.jpg"
                 },
                 author: {
                     name: user.username || 'User not found',
                     icon_url: user.avatarURL || ''
                 },
                 description: [
-                    `<a:heart:${heart}> **Created account on:**`,
-                    `<:reply:${reply}> <t:${createdAtSeconds}:F> (<t:${createdAtSeconds}:R>)`,
+                    `${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Created account on:**`,
+                    `<:reply:${emoji.reply}> <t:${createdAtSeconds}:F> (<t:${createdAtSeconds}:R>)`,
                     ``,
-                    `<a:heart:${heart}> **Joined server on:**`,
-                    `<:reply:${reply}> ${joinedAtText}`,
+                    `${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Joined server on:**`,
+                    `<:reply:${emoji.reply}> ${joinedAtText}`,
                     ``,
-                    `<a:heart:${heart}> **Pronouns:**`,
-                    `<:reply:${reply}> \`${pronouns}\``,
+                    `${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Pronouns:**`,
+                    `<:reply:${emoji.reply}> \`${pronouns}\``,
                     ``,
-                    `<a:heart:${heart}> **Resource Statistics:**`,                        
-                    `<:replycontinued:${replycontinued}> **Resources Submitted:** \`${await databaseManager.getTotalResourceCountByUser(target)}\``,
-                    `<:replycontinued:${replycontinued}> **Resources Maintained:** \`${await databaseManager.getActiveResourceCountByUser(target)}\``,
-                    `<:replycontinued:${replycontinued}> **Average Resource Rating:** \`${await databaseManager.getAverageRatingByUser(target) === null ? "NULL" : Math.round((Number(await databaseManager.getAverageRatingByUser(target))) * 10) / 10}/5\``,
-                    `<:reply:${reply}> **Reviews Contributed:** \`${await databaseManager.getReviewCountByUser(target)}\``,
+                    `${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Resource Statistics:**`,                        
+                    `<:replycontinued:${emoji.replycontinued}> **Resources Submitted:** \`${await databaseManager.getTotalResourceCountByUser(target)}\``,
+                    `<:replycontinued:${emoji.replycontinued}> **Resources Maintained:** \`${await databaseManager.getActiveResourceCountByUser(target)}\``,
+                    `<:replycontinued:${emoji.replycontinued}> **Average Resource Rating:** \`${await databaseManager.getAverageRatingByUser(target) === null ? "NULL" : Math.round((Number(await databaseManager.getAverageRatingByUser(target))) * 10) / 10}/5\``,
+                    `<:reply:${emoji.reply}> **Reviews Contributed:** \`${await databaseManager.getReviewCountByUser(target)}\``,
                     ``,
-                    `<a:heart:${heart}> **Support Statistics:**`,
-                    `<:replycontinued:${replycontinued}> **Total Support Points:** \`${await databaseManager.getSupportPoints(target)}\``,
-                    `<:reply:${reply}> **Leaderboard Position:** \`#${await databaseManager.getLeaderboardPosition(target)}/${await databaseManager.getTotalUsers()}\``,
+                    `${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Support Statistics:**`,
+                    `<:replycontinued:${emoji.replycontinued}> **Total Support Points:** \`${await databaseManager.getSupportPoints(target)}\``,
+                    `<:reply:${emoji.reply}> **Leaderboard Position:** \`#${await databaseManager.getLeaderboardPosition(target)}/${await databaseManager.getTotalUsers()}\``,
                 ].join('\n'),
             };
 
-            await commandInteraction.createFollowup({ embeds: [embed] });
+            await commandInteraction.createFollowup({ embeds: [embed] }, {
+                file: fs.readFileSync(winterTheme? './assets/cbseCommunityXmasBanner.jpg' : './assets/cbseCommunityBanner.jpg'),
+                name: 'cbseCommunityBanner.jpg'
+            });
         } catch (error) {
             console.error('Error getting profile:', error);
             try {

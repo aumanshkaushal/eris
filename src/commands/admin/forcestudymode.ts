@@ -1,10 +1,10 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
 import { databaseManager } from '../../lib/database';
-import { blue, red } from '../../secret/emoji.json';
+import emoji from '../../secret/emoji.json';
 const { moderator } = require('../../secret/roles.json');
 import { studymode } from '../../secret/roles.json';
-const { developerID } = require('../../secret/config.json');
+const { developerID, winterTheme } = require('../../secret/config.json');
 
 export default (bot: Eris.Client): Command => ({
     name: 'forcestudymode',
@@ -44,7 +44,7 @@ export default (bot: Eris.Client): Command => ({
                 await member?.removeRole(studymode);
                 await databaseManager.unlockStudyMode(userID);
                 await interaction.createMessage({
-                    content: `<:blue:${blue}> Study mode has been exited for <@${userID}>!`,
+                    content: `${winterTheme? `<:blue_butterfly:${emoji.blue_butterfly}>` : `<:blue:${emoji.blue}>` } Study mode has been exited for <@${userID}>!`,
                     allowedMentions: {
                         everyone: false,
                         users: [userID],
@@ -56,7 +56,7 @@ export default (bot: Eris.Client): Command => ({
                 await member?.addRole(studymode);
                 await databaseManager.lockStudyMode(userID);
                 await interaction.createMessage({
-                    content: `<:blue:${blue}> Study mode has been enabled for <@${userID}>!`,
+                    content: `${winterTheme? `<:blue_butterfly:${emoji.blue_butterfly}>` : `<:blue:${emoji.blue}>` } Study mode has been enabled for <@${userID}>!`,
                     allowedMentions: {
                         everyone: false,
                         users: [userID],

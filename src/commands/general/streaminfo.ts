@@ -1,8 +1,8 @@
 import Eris from 'eris';
 import { Command } from '../../types/command';
-import { stars, heart } from '../../secret/emoji.json';
+import emoji from '../../secret/emoji.json';
 import { pcm11, pcb11, commerce11, humanities11, pcm12, pcb12, commerce12, humanities12 } from '../../secret/roles.json';
-import { guildID } from '../../secret/config.json';
+import { guildID, winterTheme } from '../../secret/config.json';
 
 export default (bot: Eris.Client): Command => ({
     name: 'stream',
@@ -91,10 +91,10 @@ export default (bot: Eris.Client): Command => ({
 
             await commandInteraction.createFollowup({
                 embeds: [{
-                    color: 0xffffff,
-                    description: `<a:stars:${stars}> **Currently, ${grade11Count+grade12Count} students are pursuing ${streamName} stream!**
-                    > <a:heart:${heart}> **Grade 11:** \`${grade11Count}\`
-                    > <a:heart:${heart}> **Grade 12:** \`${grade12Count}\``,
+                    color: winterTheme ? 0x97c1e6 : 0xffffff,
+                    description: [`${winterTheme? `<a:blue_butterfly:${emoji.blue_butterfly}>` : `<a:stars:${emoji.stars}>`} **Currently, ${grade11Count+grade12Count} students are pursuing ${streamName} stream!**`,
+                    `> ${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Grade 11:** \`${grade11Count}\``,
+                    `> ${winterTheme? `<a:blue_heart_pop:${emoji.blue_heart_pop}>` : `<a:heart:${emoji.heart}>`} **Grade 12:** \`${grade12Count}\``].join('\n'),
                 }]
             });
 
