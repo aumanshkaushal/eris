@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import * as resourceMethods from './resourceMethods';
 import * as userMethods from './userMethods';
 import * as doubtMethods from './doubtMethods';
+import * as privateVCMethods from './privateVCMethods';
 
 export class DatabaseManager {
     private dbPool: Pool;
@@ -85,6 +86,13 @@ export class DatabaseManager {
                     solved_at INTEGER,
                     solved_message_id TEXT,
                     solved_channel_id TEXT
+                );
+            `);
+
+            await this.dbPool.query(`
+                CREATE TABLE IF NOT EXISTS privateVC (
+                    id TEXT PRIMARY KEY,
+                    ownerID TEXT
                 );
             `);
 
@@ -269,6 +277,22 @@ export class DatabaseManager {
 
     undoSolveDoubt(id: string) {
         return doubtMethods.undoSolveDoubt(this.dbPool, id);
+    }
+
+    setPrivateVC(channelID: string, ownerID: string): Promise<void> {
+        return privateVCMethods.setPrivateVC(this.dbPool, channelID, ownerID);
+    }
+
+    isPrivateVC(channelID: string): Promise<boolean> {
+        return privateVCMethods.isPrivateVC(this.dbPool, channelID);
+    }
+
+    getPrivateVCOwner(channelID: string): Promise<string | null> {
+        return privateVCMethods.getPrivateVCOwner(this.dbPool, channelID);
+    }
+
+    deletePrivateVC(channelID: string): Promise<void> {
+        return privateVCMethods.deletePrivateVC(this.dbPool, channelID);
     }
 }
 

@@ -4,7 +4,7 @@ import { CommandHandler } from './commandHandler';
 import { databaseManager } from './lib/database';
 
 const bot = new Eris.Client(`Bot ${process.env.TOKEN}`, {
-    intents: ["guilds", "guildMembers", "guildPresences", "guildMessages", "messageContent"]
+    intents: ["guilds", "guildMembers", "guildPresences", "guildMessages", "messageContent", "guildVoiceStates"]
 });
 
 const commandHandler = new CommandHandler(bot);
