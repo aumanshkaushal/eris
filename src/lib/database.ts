@@ -90,7 +90,7 @@ export class DatabaseManager {
             `);
 
             await this.dbPool.query(`
-                CREATE TABLE IF NOT EXISTS privateVC (
+                CREATE TABLE IF NOT EXISTS privatevc (
                     id TEXT PRIMARY KEY,
                     ownerID TEXT
                 );
@@ -293,6 +293,10 @@ export class DatabaseManager {
 
     deletePrivateVC(channelID: string): Promise<void> {
         return privateVCMethods.deletePrivateVC(this.dbPool, channelID);
+    }
+
+    getPrivateVCByOwner(ownerID: string): Promise<string | null> {
+        return privateVCMethods.getPrivateVCByOwner(this.dbPool, ownerID);
     }
 }
 
